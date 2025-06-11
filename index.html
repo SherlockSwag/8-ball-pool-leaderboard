@@ -10,15 +10,14 @@
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
     <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Pool Calculators</h1>
 
-    <div class="flex flex-wrap lg:flex-nowrap gap-8 justify-center w-full max-w-6xl">
+    <!-- Shared Controls Container -->
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl mb-8 flex flex-col items-center">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Shared Booking Details</h2>
 
-        <!-- Pool Cost Calculator (Calculate Bill by Time) -->
-        <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-1/2 flex flex-col">
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Calculate Cost by Time</h2>
-
-            <div class="mb-4">
-                <label for="cost_dayOfWeekInput" class="block text-gray-700 text-sm font-bold mb-2">Select Day:</label>
-                <select id="cost_dayOfWeekInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+            <div class="flex flex-col">
+                <label for="shared_dayOfWeekInput" class="block text-gray-700 text-sm font-bold mb-2">Select Day:</label>
+                <select id="shared_dayOfWeekInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     <option value="1">Monday</option>
                     <option value="2">Tuesday</option>
                     <option value="3">Wednesday</option>
@@ -29,25 +28,37 @@
                 </select>
             </div>
 
-            <div class="mb-4">
-                <label for="cost_startTimeInput" class="block text-gray-700 text-sm font-bold mb-2">Start Time:</label>
-                <input type="time" id="cost_startTimeInput" value="10:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            <div class="flex flex-col">
+                <label for="shared_startTimeInput" class="block text-gray-700 text-sm font-bold mb-2">Start Time:</label>
+                <input type="time" id="shared_startTimeInput" value="10:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
+
+            <div class="flex flex-col">
+                <label for="shared_numPlayersInput" class="block text-gray-700 text-sm font-bold mb-2">Number of People:</label>
+                <input type="number" id="shared_numPlayersInput" value="1" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div class="flex items-center self-end mb-2 md:mb-0">
+                <input type="checkbox" id="shared_memberCheckbox" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="shared_memberCheckbox" class="text-gray-700 text-sm font-bold">Member</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap lg:flex-nowrap gap-8 justify-center w-full max-w-6xl">
+
+        <!-- Pool Cost Calculator (Calculate Bill by Time) -->
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-1/2 flex flex-col">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Calculate Cost by Time</h2>
+
+            <!-- Removed shared inputs from here -->
 
             <div class="mb-6">
                 <label for="cost_endTimeInput" class="block text-gray-700 text-sm font-bold mb-2">End Time:</label>
                 <input type="time" id="cost_endTimeInput" value="11:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
-            <div class="mb-6 flex items-center">
-                <input type="checkbox" id="cost_memberCheckbox" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                <label for="cost_memberCheckbox" class="text-gray-700 text-sm font-bold">Member</label>
-            </div>
-
-            <div class="mb-6">
-                <label for="cost_numPlayersInput" class="block text-gray-700 text-sm font-bold mb-2">Number of Players:</label>
-                <input type="number" id="cost_numPlayersInput" value="1" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
+            <!-- Removed shared inputs from here -->
 
             <button id="cost_calculateButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-150 ease-in-out transform hover:scale-105">
                 Calculate Cost
@@ -66,38 +77,13 @@
         <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-1/2 flex flex-col">
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Calculate Time by Budget</h2>
 
-            <div class="mb-4">
-                <label for="budget_numPlayersInput" class="block text-gray-700 text-sm font-bold mb-2">Number of People:</label>
-                <input type="number" id="budget_numPlayersInput" value="1" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-
+            <!-- Removed shared inputs from here -->
             <div class="mb-4">
                 <label for="budget_amountPerPersonInput" class="block text-gray-700 text-sm font-bold mb-2">Amount per Person ($):</label>
                 <input type="number" id="budget_amountPerPersonInput" value="20.00" min="0" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
-            <div class="mb-4">
-                <label for="budget_dayOfWeekInput" class="block text-gray-700 text-sm font-bold mb-2">Select Day:</label>
-                <select id="budget_dayOfWeekInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    <option value="1">Monday</option>
-                    <option value="2">Tuesday</option>
-                    <option value="3">Wednesday</option>
-                    <option value="4">Thursday</option>
-                    <option value="5">Friday</option>
-                    <option value="6">Saturday</option>
-                    <option value="0">Sunday</option>
-                </select>
-            </div>
-
-            <div class="mb-6">
-                <label for="budget_startTimeInput" class="block text-gray-700 text-sm font-bold mb-2">Preferred Start Time:</label>
-                <input type="time" id="budget_startTimeInput" value="10:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-
-            <div class="mb-6 flex items-center">
-                <input type="checkbox" id="budget_memberCheckbox" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                <label for="budget_memberCheckbox" class="text-gray-700 text-sm font-bold">Member</label>
-            </div>
+            <!-- Removed shared inputs from here -->
 
             <button id="budget_calculateButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-150 ease-in-out transform hover:scale-105">
                 Calculate Playtime

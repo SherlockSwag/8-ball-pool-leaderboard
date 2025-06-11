@@ -9,11 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("budgetCalculator.js: initializeBudgetCalculator called.");
 
         // Get references to HTML elements for the BUDGET CALCULATOR
-        const numPlayersInput = document.getElementById('budget_numPlayersInput');
-        const amountPerPersonInput = document.getElementById('budget_amountPerPersonInput');
-        const dayInput = document.getElementById('budget_dayOfWeekInput');
-        const startTimeInput = document.getElementById('budget_startTimeInput');
-        const memberCheckbox = document.getElementById('budget_memberCheckbox');
+        const numPlayersInput = document.getElementById('shared_numPlayersInput'); // Updated to shared input
+        const amountPerPersonInput = document.getElementById('budget_amountPerPersonInput'); // This remains specific
+        const dayInput = document.getElementById('shared_dayOfWeekInput'); // Updated to shared input
+        const startTimeInput = document.getElementById('shared_startTimeInput'); // Updated to shared input
+        const memberCheckbox = document.getElementById('shared_memberCheckbox'); // Updated to shared input
         const calculateButton = document.getElementById('budget_calculateButton');
 
         // References to the output elements and the main container
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let minutesProcessed = 0;
 
-            // Initial check for operating hours using the shared function
+            // Initial check for operating hours using the shared function from poolCostCalculator.js
             if (!isPoolOpenAtTime(startHour, startMinute)) {
                 return { totalPlayTimeMinutes: 0, error: `Pool House is not open at ${startTimeStr}. Operating hours are from 10:00 AM to 01:00 AM (next day).` };
             }

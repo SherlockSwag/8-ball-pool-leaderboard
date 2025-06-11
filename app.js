@@ -9,11 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("app.js: initializeCostCalculator called.");
 
         // Get references to HTML elements for the COST CALCULATOR
-        const dayInput = document.getElementById('cost_dayOfWeekInput');
-        const startTimeInput = document.getElementById('cost_startTimeInput');
+        const dayInput = document.getElementById('shared_dayOfWeekInput'); // Updated to shared input
+        const startTimeInput = document.getElementById('shared_startTimeInput'); // Updated to shared input
+        const numPlayersInput = document.getElementById('shared_numPlayersInput'); // Updated to shared input
+        const memberCheckbox = document.getElementById('shared_memberCheckbox'); // Updated to shared input
+        
+        // This input remains specific to the Cost Calculator
         const endTimeInput = document.getElementById('cost_endTimeInput');
-        const memberCheckbox = document.getElementById('cost_memberCheckbox');
-        const numPlayersInput = document.getElementById('cost_numPlayersInput');
         const calculateButton = document.getElementById('cost_calculateButton');
 
         // References to the new output elements and the main container

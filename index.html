@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pool Cost Calculator</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script defer src="firebase-config.js"></script>
+    <script defer src="poolCostCalculator.js"></script>
+    <script defer src="app.js"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <h1>Pool Cost Calculator</h1>
+    <label for="hours">Enter Hours Played:</label>
+    <input type="number" id="hours" min="0" step="0.5">
+    <button onclick="showCost()">Calculate</button>
+    <p id="output"></p>
+
+    <h2>History</h2>
+    <ul id="history"></ul>
+</body>
+</html>

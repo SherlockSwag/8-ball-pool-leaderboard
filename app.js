@@ -42,22 +42,3 @@ function showCost() {
         output.textContent = error.message;
     }
 }
-
-function loadHistory() {
-    const historyList = document.getElementById("history");
-    firebase.firestore()
-        .collection("calculations")
-        .orderBy("timestamp", "desc")
-        .limit(5)
-        .onSnapshot(snapshot => {
-            historyList.innerHTML = ""; // Clear previous items
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const item = document.createElement("li");
-                item.textContent = `${data.hours} hour(s) - $${data.cost.toFixed(2)}`;
-                historyList.appendChild(item);
-            });
-        });
-}
-
-window.onload = loadHistory;

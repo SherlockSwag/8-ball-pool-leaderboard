@@ -3,61 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pool Cost Calculator</title>
+    <title>Pool Calculators</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css"> <!-- For any custom styles you have -->
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Pool Cost Calculator</h1>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+    <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Pool Calculators</h1>
 
-        <div class="mb-4">
-            <label for="dayOfWeekInput" class="block text-gray-700 text-sm font-bold mb-2">Day of Week:</label>
-            <select id="dayOfWeekInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <option value="1">Monday</option>
-                <option value="2">Tuesday</option>
-                <option value="3">Wednesday</option>
-                <option value="4">Thursday</option>
-                <option value="5">Friday</option>
-                <option value="6">Saturday</option>
-                <option value="0">Sunday</option>
-            </select>
+    <div class="flex flex-wrap lg:flex-nowrap gap-8 justify-center w-full max-w-6xl">
+
+        <!-- Pool Cost Calculator (Calculate Bill by Time) -->
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-1/2 flex flex-col">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Calculate Cost by Time</h2>
+
+            <div class="mb-4">
+                <label for="cost_dayOfWeekInput" class="block text-gray-700 text-sm font-bold mb-2">Select Day:</label>
+                <select id="cost_dayOfWeekInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                    <option value="0">Sunday</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="cost_startTimeInput" class="block text-gray-700 text-sm font-bold mb-2">Start Time:</label>
+                <input type="time" id="cost_startTimeInput" value="10:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div class="mb-6">
+                <label for="cost_endTimeInput" class="block text-gray-700 text-sm font-bold mb-2">End Time:</label>
+                <input type="time" id="cost_endTimeInput" value="11:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div class="mb-6 flex items-center">
+                <input type="checkbox" id="cost_memberCheckbox" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="cost_memberCheckbox" class="text-gray-700 text-sm font-bold">Member</label>
+            </div>
+
+            <div class="mb-6">
+                <label for="cost_numPlayersInput" class="block text-gray-700 text-sm font-bold mb-2">Number of Players:</label>
+                <input type="number" id="cost_numPlayersInput" value="1" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <button id="cost_calculateButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-150 ease-in-out transform hover:scale-105">
+                Calculate Cost
+            </button>
+
+            <!-- Output container - initially hidden -->
+            <div id="cost_resultContainer" class="mt-6 p-4 bg-gray-50 rounded-lg text-gray-800 text-lg font-semibold hidden">
+                <p>Total Cost: <span id="cost_totalCostOutput"></span></p>
+                <p>Cost per Person: <span id="cost_costPerPersonOutput"></span></p>
+                <p>(Average Hourly Rate: <span id="cost_averageHourlyRateOutput"></span> over <span id="cost_totalDurationOutput"></span> hours)</p>
+                <p id="cost_errorMessage" class="text-red-700 text-sm mt-2 hidden"></p>
+            </div>
         </div>
 
-        <div class="mb-4">
-            <label for="startTimeInput" class="block text-gray-700 text-sm font-bold mb-2">Start Time:</label>
-            <input type="time" id="startTimeInput" value="10:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-        </div>
+        <!-- Playtime Calculator (Calculate Time by Budget) -->
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-1/2 flex flex-col">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Calculate Time by Budget</h2>
 
-        <div class="mb-6">
-            <label for="endTimeInput" class="block text-gray-700 text-sm font-bold mb-2">End Time:</label>
-            <input type="time" id="endTimeInput" value="11:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-        </div>
+            <div class="mb-4">
+                <label for="budget_numPlayersInput" class="block text-gray-700 text-sm font-bold mb-2">Number of People:</label>
+                <input type="number" id="budget_numPlayersInput" value="1" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
 
-        <div class="mb-6 flex items-center">
-            <input type="checkbox" id="memberCheckbox" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="memberCheckbox" class="text-gray-700 text-sm font-bold">Member</label>
-        </div>
+            <div class="mb-4">
+                <label for="budget_amountPerPersonInput" class="block text-gray-700 text-sm font-bold mb-2">Amount per Person ($):</label>
+                <input type="number" id="budget_amountPerPersonInput" value="20.00" min="0" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
 
-        <div class="mb-6">
-            <label for="numPlayersInput" class="block text-gray-700 text-sm font-bold mb-2">Number of Players:</label>
-            <input type="number" id="numPlayersInput" value="1" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-        </div>
+            <div class="mb-4">
+                <label for="budget_dayOfWeekInput" class="block text-gray-700 text-sm font-bold mb-2">Select Day:</label>
+                <select id="budget_dayOfWeekInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                    <option value="0">Sunday</option>
+                </select>
+            </div>
 
-        <button id="calculateButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-150 ease-in-out transform hover:scale-105">
-            Calculate Cost
-        </button>
+            <div class="mb-6">
+                <label for="budget_startTimeInput" class="block text-gray-700 text-sm font-bold mb-2">Preferred Start Time:</label>
+                <input type="time" id="budget_startTimeInput" value="10:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
 
-        <!-- Output container - initially hidden -->
-        <div id="resultContainer" class="mt-6 p-4 bg-gray-50 rounded-lg text-gray-800 text-lg font-semibold hidden">
-            <p>Total Cost: <span id="totalCostOutput"></span></p>
-            <p>Cost per Person: <span id="costPerPersonOutput"></span></p>
-            <p>(Average Hourly Rate: <span id="averageHourlyRateOutput"></span> over <span id="totalDurationOutput"></span> hours)</p>
-            <p id="errorMessage" class="text-red-700 text-sm mt-2 hidden"></p>
+            <div class="mb-6 flex items-center">
+                <input type="checkbox" id="budget_memberCheckbox" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="budget_memberCheckbox" class="text-gray-700 text-sm font-bold">Member</label>
+            </div>
+
+            <button id="budget_calculateButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-150 ease-in-out transform hover:scale-105">
+                Calculate Playtime
+            </button>
+
+            <!-- Output container - initially hidden -->
+            <div id="budget_resultContainer" class="mt-6 p-4 bg-gray-50 rounded-lg text-gray-800 text-lg font-semibold hidden">
+                <p>Allowable Playtime: <span id="budget_playtimeOutput"></span></p>
+                <p id="budget_errorMessage" class="text-red-700 text-sm mt-2 hidden"></p>
+            </div>
         </div>
     </div>
 
+    <!-- Load shared calculation logic first -->
     <script src="poolCostCalculator.js"></script>
+    <!-- Load individual calculator scripts -->
     <script src="app.js"></script>
+    <script src="budgetCalculator.js"></script>
 </body>
 </html>

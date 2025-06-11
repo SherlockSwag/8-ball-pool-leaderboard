@@ -1,4 +1,5 @@
 // poolCostCalculator.js
+console.log("poolCostCalculator.js: Script loaded.");
 
 // Define the hourly rates based on day, time, and membership status
 // Times are in 24-hour format (e.g., 18:00 is 6 PM).
@@ -48,35 +49,45 @@ function getDayType(dayOfWeek) {
  * @returns {number} The hourly rate. Returns 0 if no rate is found for the given time.
  */
 function getRateForTime(dayType, hour, isMember) {
-    console.log(`[getRateForTime] Checking dayType: ${dayType}, hour: ${hour}, isMember: ${isMember}`);
     const dayRates = HOURLY_RATES[dayType];
     if (!dayRates) {
-        console.log(`[getRateForTime] No rates found for dayType: ${dayType}`);
-        return 0;
+        return 0; // Should not happen with valid dayType
     }
 
-    for (const slot /*: {startHour: number, endHour: number, public: number, member: number}*/ of dayRates) {
-        console.log(`[getRateForTime]   Checking slot: ${slot.startHour}-${slot.endHour}`);
-        if (slot.startHour === 0 && slot.endHour === 1) {
-            // This slot is for the very early hours of the day.
-            // If the current hour is 0, apply this rate.
-            if (hour === 0) {
-                const rate = isMember ? slot.member : slot.public;
-                console.log(`[getRateForTime]   Matched 0-1 slot, rate: ${rate}`);
-                return rate;
+    for (const slot of dayRates) {
+        if (slot.startHour === 0 && slot.endHour === 1) { // Specific 00:00 to 01:00 slot
+            if (hour === 0) { // If it's hour 0 (midnight to 00:59)
+                return isMember ? slot.member : slot.public;
             }
-        } else {
-            // Standard day slots
+        } else { // Standard slots (e.g., 10:00-18:00, 18:00-24:00)
             if (hour >= slot.startHour && hour < slot.endHour) {
-                const rate = isMember ? slot.member : slot.public;
-                console.log(`[getRateForTime]   Matched standard slot, rate: ${rate}`);
-                return rate;
+                return isMember ? slot.member : slot.public;
             }
         }
     }
-    console.log(`[getRateForTime] No rate found for hour: ${hour} on dayType: ${dayType}`);
-    return 0; // No rate found for this hour
+    return 0; // No rate found for this hour (implies outside defined slots within a day type)
 }
+
+/**
+ * Checks if the pool is open at a given time (hour and minute).
+ * Operating hours: 10:00 AM to 01:00 AM (next day).
+ * This function handles the logical time range across midnight.
+ * @param {number} hour - The hour (0-23).
+ * @param {number} minute - The minute (0-59).
+ * @returns {boolean} True if open, false otherwise.
+ */
+function isPoolOpenAtTime(hour, minute) {
+    // Closed window: from 01:00 AM (inclusive) to 09:59 AM (inclusive)
+    // So, if hour is 1 AND minute is 0, it's considered boundary, but after 01:00 is closed.
+    // if hour is 1 AND minute > 0, it's closed (e.g., 01:01 AM)
+    // if hour is between 2 and 9 (inclusive), it's closed.
+    if ((hour === 1 && minute >= 1) || (hour >= 2 && hour < 10)) {
+        return false; // It's within the closed period (01:01 AM to 09:59 AM)
+    }
+    // All other times are considered open based on our definition (10:00 AM to 01:00 AM)
+    return true;
+}
+
 
 /**
  * Calculates the total pool cost based on booking details.
@@ -89,107 +100,104 @@ function getRateForTime(dayType, hour, isMember) {
  * @returns {object} An object containing totalCost, hourlyRate (average, if rates vary), totalDurationHours, and an error message if any.
  */
 function calculatePoolCost(dayOfWeek, startTimeStr, endTimeStr, isMember) {
-    console.log(`[calculatePoolCost] Input: Day ${dayOfWeek}, Start ${startTimeStr}, End ${endTimeStr}, Member ${isMember}`);
-
     const [startHour, startMinute] = startTimeStr.split(':').map(Number);
     const [endHour, endMinute] = endTimeStr.split(':').map(Number);
 
+    // Initial check for operating hours at the start of the booking (using the shared function)
+    if (!isPoolOpenAtTime(startHour, startMinute)) {
+        return { error: `Pool House is not open at ${startTimeStr}. Operating hours are from 10:00 AM to 01:00 AM (next day).` };
+    }
+
+    const effectiveDayType = getDayType(dayOfWeek);
+    if (!effectiveDayType) {
+        return { error: "Invalid day of week selected." };
+    }
+
     // Create dummy Date objects for easy time calculation.
-    // Use a fixed date (e.g., 2025-01-01) for consistent day of week (Wednesday)
-    // We adjust the day for the actual dayOfWeek from input.
     const baseDate = new Date('2025-01-01T00:00:00'); // This is a Wednesday
 
     let startDateTime = new Date(baseDate);
-    startDateTime.setDate(baseDate.getDate() + (dayOfWeek - baseDate.getDay() + 7) % 7); // Adjust to the correct day of week
+    startDateTime.setDate(baseDate.getDate() + (dayOfWeek - baseDate.getDay() + 7) % 7);
     startDateTime.setHours(startHour, startMinute, 0, 0);
 
     let endDateTime = new Date(baseDate);
-    endDateTime.setDate(baseDate.getDate() + (dayOfWeek - baseDate.getDay() + 7) % 7); // Adjust to the correct day of week
+    endDateTime.setDate(baseDate.getDate() + (dayOfWeek - baseDate.getDay() + 7) % 7);
     endDateTime.setHours(endHour, endMinute, 0, 0);
 
     // Handle bookings that cross midnight
-    // If end time is earlier than start time, it means it's on the next day
     if (endDateTime <= startDateTime) {
         endDateTime.setDate(endDateTime.getDate() + 1);
-        console.log("[calculatePoolCost] Booking spans midnight, adjusted end time.");
     }
 
     let totalCost = 0;
     let currentMoment = new Date(startDateTime);
     let totalDurationMinutes = 0;
 
-    console.log(`[calculatePoolCost] Starting calculation loop from ${currentMoment.toLocaleString()} to ${endDateTime.toLocaleString()}`);
-
+    // Loop through the booking duration, minute by minute, or in segments
     while (currentMoment < endDateTime) {
-        const currentDayOfWeek = currentMoment.getDay(); // 0-6
-        const currentHour = currentMoment.getHours();    // 0-23
-        const currentMinute = currentMoment.getMinutes(); // 0-59
+        const currentDayOfWeek = currentMoment.getDay();
+        const currentHour = currentMoment.getHours();
+        const currentMinute = currentMoment.getMinutes();
 
-        let effectiveDayType = getDayType(currentDayOfWeek);
-        console.log(`[calculatePoolCost] Current moment: ${currentMoment.toLocaleString()}, DayType: ${effectiveDayType}, Hour: ${currentHour}, Minute: ${currentMinute}`);
-
-        const hourlyRate = getRateForTime(effectiveDayType, currentHour, isMember);
-
-        if (hourlyRate === 0) {
-            console.error(`[calculatePoolCost] Error: No rate defined for ${effectiveDayType} at ${currentHour}:00`);
-            return { totalCost: 0, totalDurationHours: 0, averageHourlyRate: 0, error: `No rate defined for ${effectiveDayType} at ${currentHour}:00` };
+        const currentEffectiveDayType = getDayType(currentDayOfWeek);
+        if (!currentEffectiveDayType) {
+            return { error: "Internal error: Invalid day type during calculation loop." };
         }
 
-        const currentDayRates = HOURLY_RATES[effectiveDayType];
-        let currentSlotEndHour = 24; // Default to end of day or next rate change
-        for (const slot /*: {startHour: number, endHour: number, public: number, member: number}*/ of currentDayRates) {
-             // Check if currentHour falls within this slot or is the start of an overnight slot
+        const hourlyRate = getRateForTime(currentEffectiveDayType, currentHour, isMember);
+
+        if (hourlyRate === 0) {
+            if (totalDurationMinutes > 0) {
+                // If some duration has passed, and we've hit an unpriced hour (e.g., after 01:00 AM).
+                // This means the booking extends beyond operating hours.
+                return { error: `Booking extends beyond operating hours at ${currentHour}:00. Pool House closes at 01:00 AM.` };
+            }
+            // If it's the very beginning and no rate, this scenario should ideally be caught by isPoolOpenAtTime.
+            // This fallback is for internal rate definition gaps within generally open hours.
+            return { error: `No specific rate defined for ${currentEffectiveDayType} at ${currentHour}:00.` };
+        }
+
+        const currentDayRates = HOURLY_RATES[currentEffectiveDayType]; // **FIXED TYPO HERE**
+        let currentSlotEndHour = 24; // Default to end of day (midnight)
+        for (const slot of currentDayRates) {
             if ((currentHour >= slot.startHour && currentHour < slot.endHour) || (slot.startHour === 0 && currentHour === 0 && slot.endHour === 1)) {
                 currentSlotEndHour = slot.endHour;
                 break;
             }
         }
         
-        // Calculate the next boundary for the segment
-        let nextBoundaryMoment;
-        if (currentSlotEndHour === 24) { // Current slot goes to midnight
-            nextBoundaryMoment = new Date(currentMoment);
-            nextBoundaryMoment.setHours(24, 0, 0, 0); // Next day's midnight
-        } else {
-            nextBoundaryMoment = new Date(currentMoment);
-            nextBoundaryMoment.setHours(currentSlotEndHour, 0, 0, 0); // End of current slot
+        let nextBoundaryMoment = new Date(currentMoment);
+        if (currentSlotEndHour === 1 && currentHour === 0) { // Specific 00:00-01:00 slot boundary
+            nextBoundaryMoment.setHours(1, 0, 0, 0);
+        } else { // Standard slot boundary
+            nextBoundaryMoment.setHours(currentSlotEndHour, 0, 0, 0);
         }
 
-        // The segment should end at the earliest of: booking end, current rate slot end, or next full hour
+        // Ensure the segment doesn't exceed the actual booking end time
         let segmentEnd = new Date(Math.min(endDateTime.getTime(), nextBoundaryMoment.getTime()));
         
-        // If currentMoment is 17:30 and segmentEnd was 18:00, this is fine.
-        // If currentMoment is 17:00 and segmentEnd was 17:00 (e.g. if startTime is exactly an hour mark and no rate is defined until next hour)
-        // this should not happen if rates are defined continuously.
-        // The condition `currentMoment.getTime() === segmentEnd.getTime()` indicates no progress,
-        // which could happen if `currentMinute` is not 0 and the `segmentEnd` calculation rounds to the current hour.
-        // Ensure we advance by at least a minute if at the same time and not exactly on the hour.
-        if (currentMoment.getTime() === segmentEnd.getTime() && currentMinute > 0 && currentHour < 23) { // Avoid infinite loop at 23:xx
-             segmentEnd = new Date(currentMoment.getTime() + 60 * 1000); // Advance by 1 minute to avoid stuck loop
+        // Prevent infinite loops if segmentEnd doesn't advance (e.g., floating point inaccuracies at boundaries)
+        if (currentMoment.getTime() === segmentEnd.getTime()) {
+             // Advance by at least 1 minute to ensure progress
+            segmentEnd = new Date(currentMoment.getTime() + 60 * 1000);
+            segmentEnd = new Date(Math.min(segmentEnd.getTime(), endDateTime.getTime()));
+            if (currentMoment.getTime() === segmentEnd.getTime()) { // Still stuck? Something fundamentally wrong, break.
+                 break;
+            }
         }
-        // Fallback to advance by 1 hour if stuck
-        if (currentMoment.getTime() === segmentEnd.getTime() && currentMinute === 0 && currentHour < 23) {
-            segmentEnd = new Date(currentMoment.getTime() + 60 * 60 * 1000); // Advance by 1 hour
-        }
-        // And always ensure it doesn't go past endDateTime
-        segmentEnd = new Date(Math.min(segmentEnd.getTime(), endDateTime.getTime()));
-
 
         const segmentDurationMinutes = (segmentEnd.getTime() - currentMoment.getTime()) / (1000 * 60);
-        console.log(`[calculatePoolCost]   Segment from ${currentMoment.toLocaleTimeString()} to ${segmentEnd.toLocaleTimeString()}. Duration: ${segmentDurationMinutes} mins. Rate: $${hourlyRate}`);
 
         if (segmentDurationMinutes > 0) {
             totalCost += (hourlyRate / 60) * segmentDurationMinutes;
             totalDurationMinutes += segmentDurationMinutes;
         }
 
-        currentMoment = segmentEnd; // Move to the end of the current segment
+        currentMoment = segmentEnd;
     }
 
     const totalDurationHours = totalDurationMinutes / 60;
     const averageHourlyRate = totalDurationHours > 0 ? totalCost / totalDurationHours : 0;
-
-    console.log(`[calculatePoolCost] Final: Total Cost: ${totalCost.toFixed(2)}, Avg Rate: ${averageHourlyRate.toFixed(2)}, Total Hours: ${totalDurationHours.toFixed(2)}`);
 
     return {
         totalCost: totalCost.toFixed(2),

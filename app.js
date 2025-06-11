@@ -6,33 +6,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const startTimeInput = document.getElementById('startTimeInput');
     const endTimeInput = document.getElementById('endTimeInput');
     const memberCheckbox = document.getElementById('memberCheckbox');
-    const numPlayersInput = document.getElementById('numPlayersInput'); // New: Number of Players input
+    const numPlayersInput = document.getElementById('numPlayersInput');
     const calculateButton = document.getElementById('calculateButton');
-    const resultDisplay = document.getElementById('result');
+
+    // References to the new output elements and the main container
+    const resultContainer = document.getElementById('resultContainer');
+    const totalCostOutput = document.getElementById('totalCostOutput');
+    const costPerPersonOutput = document.getElementById('costPerPersonOutput');
+    const averageHourlyRateOutput = document.getElementById('averageHourlyRateOutput');
+    const totalDurationOutput = document.getElementById('totalDurationOutput');
+    const errorMessageDisplay = document.getElementById('errorMessage');
+
 
     /**
      * Handles the click event for the calculate button.
      * Fetches input values, calls the calculation logic, and displays the result.
      */
     function handleCalculateClick() {
-        const dayOfWeek = parseInt(dayInput.value, 10); // Day of week (0-6)
-        const startTime = startTimeInput.value;         // e.g., "10:00"
-        const endTime = endTimeInput.value;             // e.g., "12:00"
-        const isMember = memberCheckbox.checked;        // true/false
-        const numPlayers = parseInt(numPlayersInput.value, 10); // New: Number of players
+        // Hide previous error messages and results
+        resultContainer.classList.add('hidden');
+        errorMessageDisplay.classList.add('hidden');
+        errorMessageDisplay.textContent = '';
 
-        // Basic input validation
+
+        const dayOfWeek = parseInt(dayInput.value, 10);
+        const startTime = startTimeInput.value;
+        const endTime = endTimeInput.value;
+        const isMember = memberCheckbox.checked;
+        const numPlayers = parseInt(numPlayersInput.value, 10);
+
+        // Input validation
         if (!startTime || !endTime) {
-            resultDisplay.classList.remove('bg-gray-50', 'text-gray-800');
-            resultDisplay.classList.add('bg-red-100', 'text-red-700');
-            resultDisplay.textContent = "Error: Please select both start and end times.";
+            errorMessageDisplay.textContent = "Please select both start and end times.";
+            errorMessageDisplay.classList.remove('hidden');
             return;
         }
 
         if (isNaN(numPlayers) || numPlayers < 1) {
-            resultDisplay.classList.remove('bg-gray-50', 'text-gray-800');
-            resultDisplay.classList.add('bg-red-100', 'text-red-700');
-            resultDisplay.textContent = "Error: Number of players must be at least 1.";
+            errorMessageDisplay.textContent = "Number of players must be at least 1.";
+            errorMessageDisplay.classList.remove('hidden');
             return;
         }
 
@@ -41,34 +53,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Display the result or an error message
         if (calculationResult.error) {
-            resultDisplay.classList.remove('bg-gray-50', 'text-gray-800');
-            resultDisplay.classList.add('bg-red-100', 'text-red-700');
-            resultDisplay.textContent = `Error: ${calculationResult.error}`;
+            errorMessageDisplay.textContent = `Error: ${calculationResult.error}`;
+            errorMessageDisplay.classList.remove('hidden');
         } else {
-            const totalCost = parseFloat(calculationResult.totalCost); // Convert back to number for division
+            const totalCost = parseFloat(calculationResult.totalCost);
             const costPerPerson = totalCost / numPlayers;
 
-            resultDisplay.classList.remove('bg-red-100', 'text-red-700');
-            resultDisplay.classList.add('bg-gray-50', 'text-gray-800');
-            resultDisplay.innerHTML = `
-                Total Cost: $${totalCost.toFixed(2)}<br>
-                Cost per Person: $${costPerPerson.toFixed(2)}<br>
-                (Average Hourly Rate: $${calculationResult.averageHourlyRate} over ${calculationResult.totalDurationHours} hours)
-            `;
+            // Update individual output spans
+            totalCostOutput.textContent = `$${totalCost.toFixed(2)}`;
+            costPerPersonOutput.textContent = `$${costPerPerson.toFixed(2)}`;
+            averageHourlyRateOutput.textContent = `$${calculationResult.averageHourlyRate}`;
+            totalDurationOutput.textContent = `${calculationResult.totalDurationHours}`;
+
+            // Show the result container
+            resultContainer.classList.remove('hidden');
         }
     }
 
-    // Attach event listeners
+    // ONLY attach event listener to the calculate button
     if (calculateButton) {
         calculateButton.addEventListener('click', handleCalculateClick);
     }
-
-    dayInput.addEventListener('change', handleCalculateClick);
-    startTimeInput.addEventListener('change', handleCalculateClick);
-    endTimeInput.addEventListener('change', handleCalculateClick);
-    memberCheckbox.addEventListener('change', handleCalculateClick);
-    numPlayersInput.addEventListener('change', handleCalculateClick); // New: Listener for players input
-
-    // Initial calculation when the page loads with default values
-    handleCalculateClick();
 });

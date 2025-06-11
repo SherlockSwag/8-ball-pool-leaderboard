@@ -55,7 +55,7 @@ function getRateForTime(dayType, hour, isMember) {
         return 0;
     }
 
-    for (const slot of dayRates) {
+    for (const slot /*: {startHour: number, endHour: number, public: number, member: number}*/ of dayRates) {
         console.log(`[getRateForTime]   Checking slot: ${slot.startHour}-${slot.endHour}`);
         if (slot.startHour === 0 && slot.endHour === 1) {
             // This slot is for the very early hours of the day.
@@ -137,7 +137,7 @@ function calculatePoolCost(dayOfWeek, startTimeStr, endTimeStr, isMember) {
 
         const currentDayRates = HOURLY_RATES[effectiveDayType];
         let currentSlotEndHour = 24; // Default to end of day or next rate change
-        for (const slot of currentDayRates) {
+        for (const slot /*: {startHour: number, endHour: number, public: number, member: number}*/ of currentDayRates) {
              // Check if currentHour falls within this slot or is the start of an overnight slot
             if ((currentHour >= slot.startHour && currentHour < slot.endHour) || (slot.startHour === 0 && currentHour === 0 && slot.endHour === 1)) {
                 currentSlotEndHour = slot.endHour;

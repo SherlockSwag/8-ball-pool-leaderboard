@@ -48,8 +48,11 @@
             Calculate Cost
         </button>
 
-        <div id="result" class="mt-6 p-4 bg-gray-50 rounded-lg text-gray-800 text-center text-lg font-semibold">
-            <!-- Calculation result will be displayed here -->
+        <div id="resultContainer" class="mt-6 p-4 bg-gray-50 rounded-lg text-gray-800 text-lg font-semibold hidden">
+            <p>Total Cost: <span id="totalCostOutput"></span></p>
+            <p>Cost per Person: <span id="costPerPersonOutput"></span></p>
+            <p>(Average Hourly Rate: <span id="averageHourlyRateOutput"></span> over <span id="totalDurationOutput"></span> hours)</p>
+            <p id="errorMessage" class="text-red-700 text-sm mt-2 hidden"></p>
         </div>
     </div>
 

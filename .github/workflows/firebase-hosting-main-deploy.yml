@@ -11,11 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Removed the npm build step as it's a static site
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_EIGHT_BALL_LEADERBOARD }}
           projectId: eight-ball-leaderboard
-          # Optional: You might want to specify the target channel for production
-          # channelId: live # This is the default channel for production
+          channelId: live # <--- ADD THIS LINE for production deployment

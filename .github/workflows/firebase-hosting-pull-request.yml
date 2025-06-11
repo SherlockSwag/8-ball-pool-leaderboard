@@ -2,23 +2,29 @@
 # https://github.com/firebase/firebase-tools
 
 name: Deploy to Firebase Hosting on PR
+# This workflow will now ONLY trigger on pull_request events
 on:
-  push:
+  pull_request: # This specifies that the workflow runs when a pull request event occurs
     branches:
-      - main # You might want to remove this if you only want it on PRs and not pushes to main
+      - main # This means it will trigger for PRs targeting the 'main' branch
 permissions:
   checks: write
   contents: read
   pull-requests: write
 jobs:
   build_and_preview:
+    # This condition ensures the job only runs for PRs from within the same repository,
+    # preventing builds for forks which might have malicious code.
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      # Removed the npm build step as it's a static site
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - uses: actions/checkout@v4 # Checkout the repository code
+      # Removed the npm build step as this is a static site.
+      # The Firebase Hosting action will deploy the static content from the 'public' directory.
+      - uses: FirebaseExtended/action-hosting-deploy@v0 # Use the Firebase Hosting deployment action
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_EIGHT_BALL_LEADERBOARD }}
-          projectId: eight-ball-leaderboard
+          repoToken: ${{ secrets.GITHUB_TOKEN }} # GitHub token for repository access
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_EIGHT_BALL_LEADERBOARD }} # Firebase service account for authentication
+          projectId: eight-ball-leaderboard # Your Firebase project ID
+          # No channelId: live here; the action automatically creates a preview channel for PRs.
+          # The expires: 7d is automatically handled by the action for PR previews.

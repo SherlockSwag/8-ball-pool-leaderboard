@@ -5,7 +5,7 @@ name: Deploy to Firebase Hosting on PR
 on:
   push:
     branches:
-      - main
+      - main # You might want to remove this if you only want it on PRs and not pushes to main
 permissions:
   checks: write
   contents: read
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci && npm run build
+      # Removed the npm build step as it's a static site
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}

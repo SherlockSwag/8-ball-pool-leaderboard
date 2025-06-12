@@ -431,9 +431,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const totalGames = totalWins + totalLosses;
                     const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(2) : 'N/A';
 
+                    // Create the table row with a link for the player name
                     const row = `
                         <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 text-sm text-gray-800">${player.name}</td>
+                            <td class="py-3 px-4 text-sm text-gray-800">
+                                <a href="playerProfile.html?playerName=${encodeURIComponent(player.name)}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                                    ${player.name}
+                                </a>
+                            </td>
                             <td class="py-3 px-4 text-center text-sm text-gray-800">${player.wins1v1 || 0}</td>
                             <td class="py-3 px-4 text-center text-sm text-gray-800">${player.losses1v1 || 0}</td>
                             <td class="py-3 px-4 text-center text-sm text-gray-800">${player.wins2v2 || 0}</td>

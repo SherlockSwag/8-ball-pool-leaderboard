@@ -1,4 +1,5 @@
-// Replace these with your Firebase project settings
+// firebase-config.js
+
 const firebaseConfig = {
   apiKey: "AIzaSyAB0Wyp1vK7fsspwvIemn2Oo_H-RBCse5A",
   authDomain: "eight-ball-leaderboard.firebaseapp.com",
@@ -9,5 +10,5 @@ const firebaseConfig = {
   measurementId: "G-6B4R0L1388"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+// This export is crucial for leaderboard.js to be able to import it.
+export { firebaseConfig };

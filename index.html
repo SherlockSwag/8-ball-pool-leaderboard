@@ -10,125 +10,114 @@
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
     <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Pool House Leaderboard</h1>
 
-    <!-- Match Tracker Section -->
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl mb-8">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Add New Match</h2>
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl mb-8"> <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Add New Match</h2>
         
         <div class="flex flex-col gap-y-4">
-            <!-- Game Type Selection -->
             <div>
                 <label class="block text-gray-700 text-sm font-bold mb-2">Game Type:</label>
                 <div class="flex space-x-4">
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="radio" name="gameType" value="1v1" class="form-radio text-blue-600 h-4 w-4" checked>
+                        <input type="radio" name="gameType" value="1v1" class="form-radio text-blue-600 h-4 w-4 focus:ring-2 focus:ring-blue-500" checked>
                         <span class="ml-2 text-gray-700">1v1</span>
                     </label>
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="radio" name="gameType" value="2v2" class="form-radio text-blue-600 h-4 w-4">
+                        <input type="radio" name="gameType" value="2v2" class="form-radio text-blue-600 h-4 w-4 focus:ring-2 focus:ring-blue-500">
                         <span class="ml-2 text-gray-700">2v2</span>
                     </label>
                 </div>
             </div>
 
-            <!-- Player Inputs -->
-            <div id="playerInputs" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- 1v1 Players -->
-                <div class="flex flex-col" id="player1v1_1_div">
-                    <label for="player1v1_1" class="block text-gray-700 text-sm font-bold mb-1">Player 1:</label>
-                    <input type="text" id="player1v1_1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10" placeholder="Enter Player Name">
-                </div>
-                <div class="flex flex-col" id="player1v1_2_div">
-                    <label for="player1v1_2" class="block text-gray-700 text-sm font-bold mb-1">Player 2:</label>
-                    <input type="text" id="player1v1_2" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10" placeholder="Enter Player Name">
+            <div id="playerInputs">
+                <div id="team1PlayersContainer" class="mt-4 p-4 border border-blue-200 bg-blue-50 rounded-lg"> <h3 class="text-lg font-semibold text-blue-800 mb-3">Team 1 Players:</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label for="player1" class="block text-gray-700 text-sm font-bold mb-1">Player 1:</label>
+                            <input type="text" id="player1" class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10" placeholder="Enter Player Name">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="player2" class="block text-gray-700 text-sm font-bold mb-1">Player 2:</label>
+                            <input type="text" id="player2" class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10" placeholder="Enter Player Name">
+                        </div>
+                    </div>
                 </div>
 
-                <!-- 2v2 Players (initially hidden) -->
-                <div class="flex flex-col hidden" id="player2v2_3_div">
-                    <label for="player2v2_3" class="block text-gray-700 text-sm font-bold mb-1">Player 3 (Team 1):</label>
-                    <input type="text" id="player2v2_3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10" placeholder="Enter Player Name">
-                </div>
-                <div class="flex flex-col hidden" id="player2v2_4_div">
-                    <label for="player2v2_4" class="block text-gray-700 text-sm font-bold mb-1">Player 4 (Team 2):</label>
-                    <input type="text" id="player2v2_4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10" placeholder="Enter Player Name">
+                <div id="team2PlayersContainer" class="mt-4 p-4 border border-green-200 bg-green-50 rounded-lg hidden"> <h3 class="text-lg font-semibold text-green-800 mb-3">Team 2 Players:</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label for="player3" class="block text-gray-700 text-sm font-bold mb-1">Player 3:</label>
+                            <input type="text" id="player3" class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent h-10" placeholder="Enter Player Name">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="player4" class="block text-gray-700 text-sm font-bold mb-1">Player 4:</label>
+                            <input type="text" id="player4" class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent h-10" placeholder="Enter Player Name">
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Winner Selection -->
             <div class="mt-2">
                 <label class="block text-gray-700 text-sm font-bold mb-2">Winner(s):</label>
                 <div id="winnerSelection" class="flex flex-col space-y-2">
-                    <label class="inline-flex items-center cursor-pointer">
-                        <input type="radio" name="winner" value="player1v1_1" class="form-radio text-green-600 h-4 w-4" checked>
-                        <span id="winner_player1v1_1_label" class="ml-2 text-gray-700">Player 1</span>
+                    <label class="inline-flex items-center cursor-pointer" id="winner_player1_radio_div">
+                        <input type="radio" name="winner" value="player1" class="form-radio text-green-600 h-4 w-4 focus:ring-2 focus:ring-green-500" checked>
+                        <span id="winner_player1_label" class="ml-2 text-gray-700">Player 1</span>
                     </label>
-                    <label class="inline-flex items-center cursor-pointer">
-                        <input type="radio" name="winner" value="player1v1_2" class="form-radio text-green-600 h-4 w-4">
-                        <span id="winner_player1v1_2_label" class="ml-2 text-gray-700">Player 2</span>
+                    <label class="inline-flex items-center cursor-pointer" id="winner_player2_radio_div">
+                        <input type="radio" name="winner" value="player2" class="form-radio text-green-600 h-4 w-4 focus:ring-2 focus:ring-green-500">
+                        <span id="winner_player2_label" class="ml-2 text-gray-700">Player 2</span>
                     </label>
-                    <!-- 2v2 Winner Options (initially hidden) -->
-                    <label class="inline-flex items-center cursor-pointer hidden" id="winner_team1_label_div">
-                        <input type="radio" name="winner" value="team1" class="form-radio text-green-600 h-4 w-4">
-                        <span class="ml-2 text-gray-700">Team 1 (<span id="team1_player1_label">Player 1</span> & <span id="team1_player3_label">Player 3</span>)</span>
+                    <label class="inline-flex items-center cursor-pointer hidden" id="winner_team1_radio_div">
+                        <input type="radio" name="winner" value="team1" class="form-radio text-green-600 h-4 w-4 focus:ring-2 focus:ring-green-500">
+                        <span class="ml-2 text-gray-700">Team 1 (<span id="team1_player1_label">Player 1</span> & <span id="team1_player2_label">Player 2</span>)</span>
                     </label>
-                    <label class="inline-flex items-center cursor-pointer hidden" id="winner_team2_label_div">
-                        <input type="radio" name="winner" value="team2" class="form-radio text-green-600 h-4 w-4">
-                        <span class="ml-2 text-gray-700">Team 2 (<span id="team2_player2_label">Player 2</span> & <span id="team2_player4_label">Player 4</span>)</span>
+                    <label class="inline-flex items-center cursor-pointer hidden" id="winner_team2_radio_div">
+                        <input type="radio" name="winner" value="team2" class="form-radio text-green-600 h-4 w-4 focus:ring-2 focus:ring-green-500">
+                        <span class="ml-2 text-gray-700">Team 2 (<span id="team2_player3_label">Player 3</span> & <span id="team2_player4_label">Player 4</span>)</span>
                     </label>
                 </div>
             </div>
 
-            <button id="addMatchButton" class="mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105">
+            <button id="addMatchButton" class="mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
                 Add Match
             </button>
             <div id="matchErrorMessage" class="hidden"></div>
         </div>
     </div>
 
-    <!-- Leaderboard Table -->
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl mb-8">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Overall Leaderboard</h2>
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-4xl mb-8"> <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Overall Leaderboard</h2>
         <div id="leaderboardErrorMessage" class="hidden"></div>
         <table id="leaderboardTable" class="min-w-full bg-white rounded-lg overflow-hidden">
             <thead class="bg-gray-200">
                 <tr>
-                    <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Player Name</th>
-                    <th class="py-3 px-4 text-center text-sm font-semibold text-gray-700">1v1 Wins</th>
+                    <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Rank</th> <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:text-blue-700">Player Name</th> <th class="py-3 px-4 text-center text-sm font-semibold text-gray-700">1v1 Wins</th>
                     <th class="py-3 px-4 text-center text-sm font-semibold text-gray-700">1v1 Losses</th>
                     <th class="py-3 px-4 text-center text-sm font-semibold text-gray-700">2v2 Wins</th>
                     <th class="py-3 px-4 text-center text-sm font-semibold text-gray-700">2v2 Losses</th>
-                    <th class="py-3 px-4 text-center text-sm font-semibold text-gray-700">Overall Win Rate (%)</th>
-                </tr>
+                    <th class="py-3 px-4 text-center text-sm font-semibold text-gray-700 cursor-pointer hover:text-blue-700">Overall Win Rate (%)</th> </tr>
             </thead>
             <tbody id="leaderboardTableBody">
-                <!-- Leaderboard rows will be dynamically inserted here by leaderboard.js -->
                 <tr>
-                    <td colspan="6" class="py-3 px-4 text-center text-sm text-gray-500">Loading leaderboard...</td>
-                </tr>
+                    <td colspan="7" class="py-3 px-4 text-center text-sm text-gray-500">Loading leaderboard...</td> </tr>
             </tbody>
         </table>
     </div>
 
-    <!-- Admin/Testing Controls -->
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl mb-8 flex flex-col items-center">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Admin Controls (For Testing)</h2>
-        <button id="clearAllDataButton" class="bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl mb-8 flex flex-col items-center"> <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Admin Controls (For Testing)</h2>
+        <button id="clearAllDataButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
             Clear All Leaderboard Data
         </button>
-        <div id="clearConfirmationMessage" class="mt-4 p-4 rounded-lg bg-yellow-100 text-yellow-800 hidden flex-col items-center space-y-3">
-            <p><strong>Are you sure? This will permanently delete ALL player data.</strong></p>
-            <button id="confirmClearButton" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105">
+        <div id="clearConfirmationMessage" class="mt-4 p-4 rounded-lg bg-yellow-100 text-yellow-800 hidden flex-col items-center space-y-3 min-h-[8rem] border border-yellow-300"> <p><strong>Are you sure? This will permanently delete ALL player data.</strong></p>
+            <button id="confirmClearButton" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
                 Confirm Clear ALL Data
             </button>
-            <button id="cancelClearButton" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105">
+            <button id="cancelClearButton" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
                 Cancel
             </button>
         </div>
-        <div id="clearDataMessage" class="hidden"></div>
+        <div id="clearDataMessage" class="hidden min-h-[4rem]"></div>
     </div>
 
-
-    <!-- Button to go to Pool Calculators -->
-    <a href="calculators.html" class="mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105">
+    <a href="calculators.html" class="mt-8 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
         Go to Pool Calculators
     </a>
 

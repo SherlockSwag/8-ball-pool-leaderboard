@@ -108,29 +108,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Get elements for Game Type selection
     const gameTypeRadios = document.querySelectorAll('input[name="gameType"]');
-    const player1v1_1Div = document.getElementById('player1v1_1_div');
-    const player1v1_2Div = document.getElementById('player1v1_2_div');
-    const player2v2_3Div = document.getElementById('player2v2_3_div');
-    const player2v2_4Div = document.getElementById('player2v2_4_div');
+    
+    // Get elements for Player Inputs (New IDs)
+    const player1Input = document.getElementById('player1');
+    const player2Input = document.getElementById('player2');
+    const player3Input = document.getElementById('player3'); // New ID
+    const player4Input = document.getElementById('player4'); // New ID
+    
+    const team1PlayersContainer = document.getElementById('team1PlayersContainer'); // Added for Team 1 styling
+    const team2PlayersContainer = document.getElementById('team2PlayersContainer'); // New container for P3/P4
 
-    // Get elements for Player Inputs
-    const player1v1_1Input = document.getElementById('player1v1_1');
-    const player1v1_2Input = document.getElementById('player1v1_2');
-    const player2v2_3Input = document.getElementById('player2v2_3');
-    const player2v2_4Input = document.getElementById('player2v2_4');
-
-    // Get elements for Winner Selection
+    // Get elements for Winner Selection (New IDs/labels)
     const winnerSelectionDiv = document.getElementById('winnerSelection');
-    const winnerPlayer1v1_1Radio = winnerSelectionDiv.querySelector('input[value="player1v1_1"]');
-    const winnerPlayer1v1_2Radio = winnerSelectionDiv.querySelector('input[value="player1v1_2"]');
-    const winnerPlayer1v1_1Label = document.getElementById('winner_player1v1_1_label');
-    const winnerPlayer1v1_2Label = document.getElementById('winner_player1v1_2_label');
-    const winnerTeam1LabelDiv = document.getElementById('winner_team1_label_div');
-    const winnerTeam2LabelDiv = document.getElementById('winner_team2_label_div');
+    const winnerPlayer1RadioDiv = document.getElementById('winner_player1_radio_div'); // Div for Player 1 radio
+    const winnerPlayer2RadioDiv = document.getElementById('winner_player2_radio_div'); // Div for Player 2 radio
+    const winnerPlayer1Label = document.getElementById('winner_player1_label');
+    const winnerPlayer2Label = document.getElementById('winner_player2_label');
+    const winnerTeam1RadioDiv = document.getElementById('winner_team1_radio_div'); // Div for Team 1 radio
+    const winnerTeam2RadioDiv = document.getElementById('winner_team2_radio_div'); // Div for Team 2 radio
     const team1Player1Label = document.getElementById('team1_player1_label');
-    const team1Player3Label = document.getElementById('team1_player3_label');
-    const team2Player2Label = document.getElementById('team2_player2_label');
-    const team2Player4Label = document.getElementById('team2_player4_label');
+    const team1Player2Label = document.getElementById('team1_player2_label'); // Changed from team1Player3Label
+    const team2Player3Label = document.getElementById('team2_player3_label'); // Changed from team2Player2Label
+    const team2Player4Label = document.getElementById('team2_player4_label'); // Changed from team2Player4Label
+
 
     const addMatchButton = document.getElementById('addMatchButton');
     const leaderboardTableBody = document.getElementById('leaderboardTableBody');
@@ -152,34 +152,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedGameType = document.querySelector('input[name="gameType"]:checked').value;
         hideMessage('matchErrorMessage'); // Clear match errors on game type change
 
+        // Reset player inputs (optional, but good for clarity)
+        player1Input.value = '';
+        player2Input.value = '';
+        player3Input.value = '';
+        player4Input.value = '';
+
         if (selectedGameType === '1v1') {
-            player1v1_1Div.classList.remove('hidden');
-            player1v1_2Div.classList.remove('hidden');
-            player2v2_3Div.classList.add('hidden');
-            player2v2_4Div.classList.add('hidden');
+            team1PlayersContainer.classList.remove('hidden'); // Ensure Team 1 is visible
+            team2PlayersContainer.classList.add('hidden'); // Hide Team 2 players
 
             // Show 1v1 winner radios, hide 2v2 winner radios
-            winnerPlayer1v1_1Radio.parentNode.classList.remove('hidden');
-            winnerPlayer1v1_2Radio.parentNode.classList.remove('hidden');
-            winnerTeam1LabelDiv.classList.add('hidden');
-            winnerTeam2LabelDiv.classList.add('hidden');
+            winnerPlayer1RadioDiv.classList.remove('hidden');
+            winnerPlayer2RadioDiv.classList.remove('hidden');
+            winnerTeam1RadioDiv.classList.add('hidden');
+            winnerTeam2RadioDiv.classList.add('hidden');
 
-            // Reset winner selection to 1v1 players
-            winnerPlayer1v1_1Radio.checked = true;
+            // Set default winner for 1v1
+            winnerSelectionDiv.querySelector('input[value="player1"]').checked = true;
 
         } else { // 2v2
-            player1v1_1Div.classList.remove('hidden');
-            player1v1_2Div.classList.remove('hidden');
-            player2v2_3Div.classList.remove('hidden');
-            player2v2_4Div.classList.remove('hidden');
+            team1PlayersContainer.classList.remove('hidden'); // Ensure Team 1 is visible
+            team2PlayersContainer.classList.remove('hidden'); // Show Team 2 players
 
             // Hide 1v1 winner radios, show 2v2 winner radios
-            winnerPlayer1v1_1Radio.parentNode.classList.add('hidden');
-            winnerPlayer1v1_2Radio.parentNode.classList.add('hidden');
-            winnerTeam1LabelDiv.classList.remove('hidden');
-            winnerTeam2LabelDiv.classList.remove('hidden');
+            winnerPlayer1RadioDiv.classList.add('hidden');
+            winnerPlayer2RadioDiv.classList.add('hidden');
+            winnerTeam1RadioDiv.classList.remove('hidden');
+            winnerTeam2RadioDiv.classList.remove('hidden');
 
-            // Set winner radio values for teams
+            // Set default winner for 2v2
             winnerSelectionDiv.querySelector('input[value="team1"]').checked = true;
         }
         updateWinnerLabels(); // Update team labels immediately
@@ -189,13 +191,13 @@ document.addEventListener('DOMContentLoaded', async () => {
      * Updates the winner selection labels with current player names.
      */
     function updateWinnerLabels() {
-        winnerPlayer1v1_1Label.textContent = player1v1_1Input.value.trim() || 'Player 1';
-        winnerPlayer1v1_2Label.textContent = player1v1_2Input.value.trim() || 'Player 2';
+        winnerPlayer1Label.textContent = player1Input.value.trim() || 'Player 1';
+        winnerPlayer2Label.textContent = player2Input.value.trim() || 'Player 2';
         
-        team1Player1Label.textContent = player1v1_1Input.value.trim() || 'Player 1';
-        team1Player3Label.textContent = player2v2_3Input.value.trim() || 'Player 3';
-        team2Player2Label.textContent = player1v1_2Input.value.trim() || 'Player 2';
-        team2Player4Label.textContent = player2v2_4Input.value.trim() || 'Player 4';
+        team1Player1Label.textContent = player1Input.value.trim() || 'Player 1';
+        team1Player2Label.textContent = player2Input.value.trim() || 'Player 2'; // Player 2 is now on Team 1
+        team2Player3Label.textContent = player3Input.value.trim() || 'Player 3';
+        team2Player4Label.textContent = player4Input.value.trim() || 'Player 4';
     }
 
     /**
@@ -215,49 +217,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const gameType = document.querySelector('input[name="gameType"]:checked').value;
-        let playersInMatch = [];
         let winnerPlayers = [];
         let loserPlayers = [];
 
         try {
-            if (gameType === '1v1') {
-                const p1 = player1v1_1Input.value.trim();
-                const p2 = player1v1_2Input.value.trim();
+            const p1 = player1Input.value.trim();
+            const p2 = player2Input.value.trim();
+            const p3 = player3Input.value.trim();
+            const p4 = player4Input.value.trim();
 
+            if (gameType === '1v1') {
                 if (!p1 || !p2) {
                     showMessage('matchErrorMessage', 'Please enter names for both Player 1 and Player 2.', 'error');
                     return;
                 }
                 if (p1 === p2) {
-                    showMessage('matchErrorMessage', 'Player names must be different in 1v1 match.', 'error');
+                    showMessage('matchErrorMessage', 'Player names must be different in a 1v1 match.', 'error');
                     return;
                 }
-                playersInMatch.push(p1, p2);
 
                 const selectedWinnerValue = document.querySelector('input[name="winner"]:checked')?.value;
                 if (!selectedWinnerValue) {
                     showMessage('matchErrorMessage', 'Please select a winner.', 'error');
                     return;
                 }
-                winnerPlayers.push(selectedWinnerValue === 'player1v1_1' ? p1 : p2);
-                loserPlayers.push(selectedWinnerValue === 'player1v1_1' ? p2 : p1);
+                winnerPlayers.push(selectedWinnerValue === 'player1' ? p1 : p2);
+                loserPlayers.push(selectedWinnerValue === 'player1' ? p2 : p1);
 
             } else { // 2v2
-                const p1 = player1v1_1Input.value.trim();
-                const p2 = player1v1_2Input.value.trim();
-                const p3 = player2v2_3Input.value.trim();
-                const p4 = player2v2_4Input.value.trim();
-
                 if (!p1 || !p2 || !p3 || !p4) {
                     showMessage('matchErrorMessage', 'Please enter names for all four players.', 'error');
                     return;
                 }
-                const uniquePlayers = new Set([p1, p2, p3, p4]);
+                const allPlayers = [p1, p2, p3, p4];
+                const uniquePlayers = new Set(allPlayers);
                 if (uniquePlayers.size !== 4) {
                     showMessage('matchErrorMessage', 'All four player names must be unique for a 2v2 match.', 'error');
                     return;
                 }
-                playersInMatch.push(p1, p2, p3, p4);
 
                 const selectedWinnerValue = document.querySelector('input[name="winner"]:checked')?.value;
                 if (!selectedWinnerValue) {
@@ -266,11 +263,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 if (selectedWinnerValue === 'team1') {
-                    winnerPlayers.push(p1, p3);
-                    loserPlayers.push(p2, p4);
+                    winnerPlayers.push(p1, p2); // Team 1: Player 1 & Player 2
+                    loserPlayers.push(p3, p4); // Team 2: Player 3 & Player 4
                 } else { // team2
-                    loserPlayers.push(p1, p3);
-                    winnerPlayers.push(p2, p4);
+                    winnerPlayers.push(p3, p4); // Team 2: Player 3 & Player 4
+                    loserPlayers.push(p1, p2); // Team 1: Player 1 & Player 2
                 }
             }
 
@@ -298,12 +295,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             showMessage('matchErrorMessage', 'Match added successfully!', 'success');
 
             // Clear inputs
-            player1v1_1Input.value = '';
-            player1v1_2Input.value = '';
-            player2v2_3Input.value = '';
-            player2v2_4Input.value = '';
+            player1Input.value = '';
+            player2Input.value = '';
+            player3Input.value = '';
+            player4Input.value = '';
             updateWinnerLabels(); // Reset winner labels
-            updateGameTypeDisplay(); // Reset to 1v1 view
+            updateGameTypeDisplay(); // Reset to 1v1 view and clear fields for next entry
 
             await fetchAndRenderLeaderboard(); // Refresh leaderboard
         } catch (error) {
@@ -399,6 +396,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 players.push(doc.data());
             });
 
+            // Sort players by overall win rate (descending)
             players.sort((a, b) => {
                 const aTotalWins = (a.wins1v1 || 0) + (a.wins2v2 || 0);
                 const aTotalLosses = (a.losses1v1 || 0) + (a.losses2v2 || 0);
@@ -413,6 +411,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (bWinRate !== aWinRate) {
                     return bWinRate - aWinRate; // Sort by win rate descending
                 }
+                // If win rates are equal, sort by total wins descending
                 return bTotalWins - aTotalWins;
             });
 
@@ -421,20 +420,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (players.length === 0) {
                 leaderboardTableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="py-3 px-4 text-center text-sm text-gray-500">No players yet. Add a match to get started!</td>
+                        <td colspan="7" class="py-3 px-4 text-center text-sm text-gray-500">No players yet. Add a match to get started!</td>
                     </tr>
                 `;
             } else {
-                players.forEach((player) => {
+                players.forEach((player, index) => { // Added index for rank
                     const totalWins = (player.wins1v1 || 0) + (player.wins2v2 || 0);
                     const totalLosses = (player.losses1v1 || 0) + (player.losses2v2 || 0);
                     const totalGames = totalWins + totalLosses;
                     const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(2) : 'N/A';
 
-                    // Create the table row with a link for the player name
                     const row = `
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4 text-sm text-gray-800">
+                        <tr class="border-b border-gray-200 odd:bg-white even:bg-gray-50 hover:bg-gray-100"> <!-- Added zebra striping -->
+                            <td class="py-3 px-4 text-center text-sm font-semibold text-gray-800">${index + 1}</td> <!-- Display Rank -->
+                            <td class="py-3 px-4 text-left text-sm text-gray-800">
                                 <a href="playerProfile.html?playerName=${encodeURIComponent(player.name)}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
                                     ${player.name}
                                 </a>
@@ -459,10 +458,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Event Listeners
     gameTypeRadios.forEach(radio => radio.addEventListener('change', updateGameTypeDisplay));
-    player1v1_1Input.addEventListener('input', updateWinnerLabels);
-    player1v1_2Input.addEventListener('input', updateWinnerLabels);
-    player2v2_3Input.addEventListener('input', updateWinnerLabels);
-    player2v2_4Input.addEventListener('input', updateWinnerLabels);
+    player1Input.addEventListener('input', updateWinnerLabels);
+    player2Input.addEventListener('input', updateWinnerLabels);
+    player3Input.addEventListener('input', updateWinnerLabels);
+    player4Input.addEventListener('input', updateWinnerLabels);
     addMatchButton.addEventListener('click', handleAddMatch);
 
     // Clear All Data Event Listeners

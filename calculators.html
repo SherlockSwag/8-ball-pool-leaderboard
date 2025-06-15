@@ -7,16 +7,10 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css"> 
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
-    <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Pool Calculators</h1>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4"> <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Pool Calculators</h1> <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl mb-8 mt-4">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Shared Booking Details</h2>
 
-    <!-- Shared Controls Container -->
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl mb-8 flex flex-col items-center">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Shared Booking Details</h2>
-
-        <!-- Changed to flex flex-col for vertical stacking -->
         <div class="flex flex-col gap-y-4 w-full"> 
-            <!-- Select Day -->
             <div class="flex flex-col space-y-1"> 
                 <label for="shared_dayOfWeekInput" class="block text-gray-700 text-sm font-bold">Select Day:</label>
                 <select id="shared_dayOfWeekInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10">
@@ -30,19 +24,16 @@
                 </select>
             </div>
 
-            <!-- Start Time -->
             <div class="flex flex-col space-y-1"> 
                 <label for="shared_startTimeInput" class="block text-gray-700 text-sm font-bold">Start Time:</label>
                 <input type="time" id="shared_startTimeInput" value="10:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10">
             </div>
 
-            <!-- Number of People -->
             <div class="flex flex-col space-y-1"> 
                 <label for="shared_numPlayersInput" class="block text-gray-700 text-sm font-bold">Number of People:</label>
                 <input type="number" id="shared_numPlayersInput" value="1" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10">
             </div>
 
-            <!-- Membership Checkbox Group -->
             <div class="flex flex-col space-y-1"> 
                 <label class="block text-gray-700 text-sm font-bold">Membership:</label>
                 <div class="flex items-center h-10"> 
@@ -55,7 +46,6 @@
 
     <div class="flex flex-wrap lg:flex-nowrap gap-8 justify-center w-full max-w-6xl">
 
-        <!-- Pool Cost Calculator (Calculate Bill by Time) -->
         <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-1/2 flex flex-col">
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Calculate Cost by Time</h2>
 
@@ -68,7 +58,6 @@
                 Calculate Cost
             </button>
 
-            <!-- Output container - initially hidden -->
             <div id="cost_resultContainer" class="mt-6 p-4 bg-gray-50 rounded-lg text-gray-800 text-lg font-semibold hidden">
                 <p>Total Cost: <span id="cost_totalCostOutput"></span></p>
                 <p>Cost per Person: <span id="cost_costPerPersonOutput"></span></p>
@@ -77,7 +66,6 @@
             </div>
         </div>
 
-        <!-- Playtime Calculator (Calculate Time by Budget) -->
         <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-1/2 flex flex-col">
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Calculate Time by Budget</h2>
 
@@ -90,7 +78,6 @@
                 Calculate Playtime
             </button>
 
-            <!-- Output container - initially hidden -->
             <div id="budget_resultContainer" class="mt-6 p-4 bg-gray-50 rounded-lg text-gray-800 text-lg font-semibold hidden">
                 <p>Allowable Playtime: <span id="budget_playtimeOutput"></span></p>
                 <p id="budget_errorMessage" class="text-red-700 text-sm mt-2 hidden"></p>
@@ -98,14 +85,11 @@
         </div>
     </div>
 
-    <!-- Button to go to Leaderboard (now index.html) -->
-    <a href="index.html" class="mt-8 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105">
-        Go to Leaderboard
+    <a href="index.html" class="mt-8 mb-8 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105">
+        Go to Pool Leaderboard
     </a>
 
-    <!-- Load shared calculation logic first -->
     <script src="poolCostCalculator.js"></script>
-    <!-- Load individual calculator scripts -->
     <script src="app.js"></script>
     <script src="budgetCalculator.js"></script>
 </body>

@@ -7,10 +7,11 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css"> 
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
-    <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Player Profile</h1>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4 pt-20"> <!-- Reverted: Added items-center, justify-center, pt-20 -->
+    <!-- Fixed Header -->
+    <h1 class="fixed top-0 left-0 right-0 z-50 bg-white shadow-md py-4 text-4xl font-bold text-center text-gray-800">Player Profile</h1> <!-- Reverted: Added fixed positioning classes and text-center -->
 
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-xl mb-8">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-xl mb-8 mt-4">
         <h2 id="playerNameDisplay" class="text-3xl font-bold text-center text-gray-800 mb-6"></h2>
         
         <div class="space-y-4">
@@ -19,9 +20,7 @@
             <p class="text-lg text-gray-700"><strong class="font-semibold">2v2 Wins:</strong> <span id="wins2v2">N/A</span></p>
             <p class="text-lg text-gray-700"><strong class="font-semibold">2v2 Losses:</strong> <span id="losses2v2">N/A</span></p>
             <p class="text-lg text-gray-700"><strong class="font-semibold">Overall Win Rate:</strong> <span id="overallWinRate">N/A</span></p>
-            <!-- Elo will be added later -->
-            <!-- <p class="text-lg text-gray-700"><strong class="font-semibold">Elo Rating:</strong> <span id="eloRating">N/A</span></p> -->
-        </div>
+            </div>
 
         <div id="profileErrorMessage" class="mt-4 hidden"></div>
 

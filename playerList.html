@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player List</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Google Fonts for 'Inter' -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 font-inter flex flex-col items-center justify-center min-h-screen p-4 py-8 text-gray-100">
+
+    <h1 class="text-4xl font-bold text-center text-blue-400 mb-8">All Players</h1>
+
+    <!-- Dashboard Menu -->
+    <nav class="w-full max-w-5xl bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 mb-8">
+        <ul class="flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <li>
+                <a href="index.html" class="text-gray-200 hover:text-blue-400 font-medium transition duration-150 ease-in-out">
+                    Leaderboard
+                </a>
+            </li>
+            <li>
+                <a href="calculators.html" class="text-gray-200 hover:text-blue-400 font-medium transition duration-150 ease-in-out">
+                    Calculators
+                </a>
+            </li>
+            <li>
+                <a href="playerList.html" class="text-gray-200 hover:text-blue-400 font-medium transition duration-150 ease-in-out">
+                    All Players
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="w-full max-w-5xl mb-8">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full">
+            <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Player Directory</h2>
+            
+            <div id="playersGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Player cards will be dynamically inserted here -->
+                <p id="playersLoadingMessage" class="col-span-full text-center text-gray-400">Loading players...</p>
+                <p id="playersErrorMessage" class="col-span-full text-center text-red-400 hidden"></p>
+            </div>
+
+            <p id="noPlayersMessage" class="col-span-full py-3 px-4 text-center text-sm text-gray-400 hidden">No players found yet.</p>
+        </div>
+    </main>
+
+    <script type="module" src="playerList.js"></script>
+</body>
+</html>

@@ -5,31 +5,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player Profile - Pool House</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Google Fonts for 'Inter' -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css"> 
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4 pt-20"> <!-- Reverted: Added items-center, justify-center, pt-20 -->
-    <!-- Fixed Header -->
-    <h1 class="fixed top-0 left-0 right-0 z-50 bg-white shadow-md py-4 text-4xl font-bold text-center text-gray-800">Player Profile</h1> <!-- Reverted: Added fixed positioning classes and text-center -->
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 font-inter flex flex-col items-center justify-center min-h-screen p-4 py-8 text-gray-100">
 
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-xl mb-8 mt-4">
-        <h2 id="playerNameDisplay" class="text-3xl font-bold text-center text-gray-800 mb-6"></h2>
-        
-        <div class="space-y-4">
-            <p class="text-lg text-gray-700"><strong class="font-semibold">1v1 Wins:</strong> <span id="wins1v1">N/A</span></p>
-            <p class="text-lg text-gray-700"><strong class="font-semibold">1v1 Losses:</strong> <span id="losses1v1">N/A</span></p>
-            <p class="text-lg text-gray-700"><strong class="font-semibold">2v2 Wins:</strong> <span id="wins2v2">N/A</span></p>
-            <p class="text-lg text-gray-700"><strong class="font-semibold">2v2 Losses:</strong> <span id="losses2v2">N/A</span></p>
-            <p class="text-lg text-gray-700"><strong class="font-semibold">Overall Win Rate:</strong> <span id="overallWinRate">N/A</span></p>
+    <h1 class="text-4xl font-bold text-center text-blue-400 mb-8">Player Profile</h1>
+
+    <!-- Dashboard Menu -->
+    <nav class="w-full max-w-5xl bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 mb-8">
+        <ul class="flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <li>
+                <a href="index.html" class="text-gray-200 hover:text-blue-400 font-medium transition duration-150 ease-in-out">
+                    Leaderboard
+                </a>
+            </li>
+            <li>
+                <a href="calculators.html" class="text-gray-200 hover:text-blue-400 font-medium transition duration-150 ease-in-out">
+                    Calculators
+                </a>
+            </li>
+            <li>
+                <a href="playerList.html" class="text-gray-200 hover:text-blue-400 font-medium transition duration-150 ease-in-out">
+                    All Players
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="w-full max-w-5xl mt-8 mb-8">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full">
+
+            <div id="profileErrorMessage" class="mt-4 p-3 rounded-lg text-sm hidden"></div>
+
+            <!-- Player Name and Description Section -->
+            <section class="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 pb-8 border-b border-gray-700">
+                <div class="flex-shrink-0">
+                    <!-- Player icon/avatar - now dynamically set by playerProfile.js -->
+                    <div class="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-3xl font-bold text-white mb-4 overflow-hidden shadow-lg">
+                        <img id="playerAvatar" src="https://placehold.co/96x96/4299E1/FFFFFF?text=?" 
+                             alt="Player Avatar" 
+                             class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <div class="flex-grow text-center sm:text-left">
+                    <h1 id="playerNameDisplay" class="text-4xl font-bold text-blue-300 mb-2">Loading Player...</h1>
+                    <p id="playerDescription" class="text-gray-300 text-base italic">
+                        Loading description...
+                    </p>
+                </div>
+            </section>
+
+            <!-- Statistics Grid -->
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <!-- Overall Statistics Card -->
+                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
+                    <h2 class="text-xl font-semibold text-blue-200 mb-4 border-b border-gray-600 pb-2">Overall Statistics</h2>
+                    <div class="space-y-3 text-base">
+                        <p class="flex items-center"><span class="mr-2 text-blue-400">📊</span> <strong class="font-semibold text-gray-200">Games Played:</strong> <span id="totalGamesPlayed" class="ml-auto text-gray-50">N/A</span></p>
+                        <p class="flex items-center"><span class="mr-2 text-yellow-400">🏆</span> <strong class="font-semibold text-gray-200">Total Wins/Losses:</strong> <span id="totalWinsLosses" class="ml-auto text-gray-50">N/A</span></p>
+                        <p class="flex items-center"><span class="mr-2 text-purple-400">📈</span> <strong class="font-semibold text-gray-200">Overall Win Rate:</strong> <span id="overallWinRate" class="ml-auto text-gray-50">N/A</span></p>
+                    </div>
+                </div>
+
+                <!-- Streaks Card -->
+                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
+                    <h2 class="text-xl font-semibold text-red-200 mb-4 border-b border-gray-600 pb-2">Streaks</h2>
+                    <div class="space-y-3 text-base">
+                        <p class="flex items-center"><span class="mr-2 text-orange-400">🔥</span> <strong class="font-semibold text-gray-200">Longest Win Streak:</strong> <span id="longestWinStreak" class="ml-auto text-gray-50">N/A</span></p>
+                        <p class="flex items-center"><span class="mr-2 text-blue-400">🥶</span> <strong class="font-semibold text-gray-200">Longest Losing Streak:</strong> <span id="longestLosingStreak" class="ml-auto text-gray-50">N/A</span></p>
+                        <p class="flex items-center"><span class="mr-2 text-purple-400">⚡</span> <strong class="font-semibold text-gray-200">Current Streak:</strong> <span id="currentStreak" class="ml-auto text-gray-50">N/A</span></p>
+                    </div>
+                </div>
+
+                <!-- 1v1 Matches Card -->
+                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
+                    <h2 class="text-xl font-semibold text-green-200 mb-4 border-b border-gray-600 pb-2">1v1 Matches</h2>
+                    <div class="space-y-3 text-base">
+                        <p class="flex items-center"><span class="mr-2 text-green-400">⚔️</span> <strong class="font-semibold text-gray-200">Games Played:</strong> <span id="games1v1" class="ml-auto text-gray-50">N/A</span></p>
+                        <p class="flex items-center"><span class="mr-2 text-green-400">✅</span> <strong class="font-semibold text-gray-200">Wins/Losses:</strong> <span id="winsLosses1v1" class="ml-auto text-gray-50">N/A</span></p>
+                        <p class="flex items-center"><span class="mr-2 text-green-400">🎯</span> <strong class="font-semibold text-gray-200">Win Rate:</strong> <span id="winRate1v1" class="ml-auto text-gray-50">N/A</span></p>
+                    </div>
+                </div>
+
+                <!-- 2v2 Matches Card -->
+                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
+                    <h2 class="text-xl font-semibold text-yellow-200 mb-4 border-b border-gray-600 pb-2">2v2 Matches</h2>
+                    <div class="space-y-3 text-base">
+                        <p class="flex items-center"><span class="mr-2 text-yellow-400">🤝</span> <strong class="font-semibold text-gray-200">Games Played:</strong> <span id="games2v2" class="ml-auto text-gray-50">N/A</span></p>
+                        <p class="flex items-center"><span class="mr-2 text-yellow-400">🌟</span> <strong class="font-semibold text-gray-200">Wins/Losses:</strong> <span id="winsLosses2v2" class="ml-auto text-gray-50">N/A</span></p>
+                        <p class="flex items-center"><span class="mr-2 text-yellow-400">🏅</span> <strong class="font-semibold text-gray-200">Win Rate:</strong> <span id="winRate2v2" class="ml-auto text-gray-50">N/A</span></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rivalries Section -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold text-orange-300 mb-4 border-b border-gray-700 pb-2">Rivalries (Vs. Other Players)</h2>
+                <div class="overflow-x-auto rounded-lg border border-gray-700">
+                    <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+                        <thead class="bg-gray-600">
+                            <tr>
+                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Opponent</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Wins Against</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Losses Against</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Win Rate %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rivalriesTableBody" class="text-gray-100">
+                            <!-- Rivalry rows will be dynamically inserted here by playerProfile.js -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noRivalriesMessage" class="py-3 px-4 text-center text-sm text-gray-400 hidden">No rivalries to display yet.</p>
+            </section>
+
+            <!-- Partnerships Section -->
+            <section>
+                <h2 class="text-xl font-semibold text-purple-300 mb-4 border-b border-gray-700 pb-2">Partnerships (With Teammates)</h2>
+                <div class="overflow-x-auto rounded-lg border border-gray-700">
+                    <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+                        <thead class="bg-gray-600">
+                            <tr>
+                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Teammate</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Wins Together</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Losses Together</th>
+                            </tr>
+                        </thead>
+                        <tbody id="partnershipsTableBody" class="text-gray-100">
+                            <!-- Partnership rows will be dynamically inserted here by playerProfile.js -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noPartnershipsMessage" class="py-3 px-4 text-center text-sm text-gray-400 hidden">No partnerships to display yet.</p>
+            </section>
+
+            <div class="mt-8 text-center flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <a id="viewMatchHistoryLink" href="#" class="btn-primary">
+                    View All Match History
+                </a>
+                <a href="index.html" class="btn-secondary">
+                    Back to Leaderboard
+                </a>
             </div>
-
-        <div id="profileErrorMessage" class="mt-4 hidden"></div>
-
-        <div class="mt-8 text-center">
-            <a href="index.html" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105">
-                Back to Leaderboard
-            </a>
         </div>
-    </div>
+    </main>
 
     <script type="module" src="playerProfile.js"></script>
 </body>

@@ -1,9 +1,125 @@
+/* style.css */
+
+/* Global body font and background */
 body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
+    font-family: 'Inter', sans-serif;
+    background-color: #1a202c; /* Deep gray for a modern, dark theme */
+    /* Add a subtle border or outline for a "framed" look */
+    border-top: 5px solid #6366f1; /* Indigo */
+    border-bottom: 5px solid #9333ea; /* Purple */
+    overflow-y: scroll; /* Ensure scrollbar always visible if content overflows */
 }
 
-input, button {
-    margin-top: 10px;
-    display: block;
+/* Custom Scrollbar Styling (for Webkit browsers like Chrome, Safari) */
+::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: #2d3748; /* Color of the tracking area */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4a5568; /* Color of the scroll thumb */
+    border-radius: 10px;
+    border: 2px solid #2d3748; /* Creates a slight border effect */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #5a67d8; /* Color on hover */
+}
+
+
+/* Custom button styles */
+.btn-primary {
+    background-image: linear-gradient(to right, #9333ea, #6366f1);
+    color: #ffffff;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    outline: none;
+    transition: all 0.3s ease-in-out;
+    display: inline-block;
+    text-align: center;
+    transform: translateY(0);
+}
+.btn-primary:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+    transform: translateY(-0.25rem) scale(1.05);
+}
+.btn-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.5); /* ring-purple-500 with opacity */
+}
+
+
+.btn-secondary {
+    background-image: linear-gradient(to right, #3b82f6, #06b6d4);
+    color: #ffffff;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    outline: none;
+    transition: all 0.3s ease-in-out;
+    display: inline-block;
+    text-align: center;
+    transform: translateY(0);
+}
+.btn-secondary:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+    transform: translateY(-0.25rem) scale(1.05);
+}
+.btn-secondary:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.5); /* ring-blue-400 with opacity */
+}
+
+
+/* Table specific styling for a darker theme */
+#rivalriesTableBody tr,
+#partnershipsTableBody tr,
+#matchHistoryTableBody tr { /* Added matchHistoryTableBody here */
+    transition: background-color 0.2s ease-in-out;
+}
+
+#rivalriesTableBody tr:nth-child(odd),
+#partnershipsTableBody tr:nth-child(odd),
+#matchHistoryTableBody tr:nth-child(odd) { /* Added matchHistoryTableBody here */
+    background-color: #2d3748; /* Darker gray for odd rows */
+}
+
+#rivalriesTableBody tr:nth-child(even),
+#partnershipsTableBody tr:nth-child(even),
+#matchHistoryTableBody tr:nth-child(even) { /* Added matchHistoryTableBody here */
+    background-color: #4a5568; /* Slightly lighter gray for even rows */
+}
+
+#rivalriesTableBody tr:hover,
+#partnershipsTableBody tr:hover,
+#matchHistoryTableBody tr:hover { /* Added matchHistoryTableBody here */
+    background-color: #5a67d8; /* Hover effect for rows (e.g., a subtle blue) */
+    color: #e2e8f0; /* Lighter text on hover */
+}
+
+#rivalriesTableBody td,
+#partnershipsTableBody td,
+#matchHistoryTableBody td { /* Added matchHistoryTableBody here */
+    border-color: #4a5568; /* Darker border for cells */
+}
+
+/* Custom shadow for inner cards and enhanced hover */
+.shadow-inner-xl {
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.6), 
+                inset 0 4px 8px 0 rgba(0, 0, 0, 0.4),
+                0 10px 15px -3px rgba(0, 0, 0, 0.4), 
+                0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.3s ease-in-out; /* Add transition for shadow */
+}
+
+/* Adding a new class for the cards themselves to apply a subtle lift on hover */
+.card-hover-effect:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2); /* More prominent shadow on hover */
 }

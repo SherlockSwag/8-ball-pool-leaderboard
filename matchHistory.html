@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match History - Pool House</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Google Fonts for 'Inter' -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 font-inter flex flex-col items-center justify-center min-h-screen p-4 py-8 text-gray-100">
+
+    <!-- Fixed Header - Consistent with Player Profile but dynamically updated title -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-700 to-purple-800 shadow-xl py-4 text-white text-center">
+        <h1 id="mainHeader" class="text-4xl lg:text-5xl font-extrabold tracking-tight"></h1>
+    </header>
+
+    <main class="w-full max-w-5xl mt-24 mb-8">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full">
+            <h2 id="matchHistoryPlayerName" class="text-3xl font-bold text-white mb-6 text-center"></h2>
+            
+            <div id="matchHistoryErrorMessage" class="mt-4 p-3 rounded-lg text-sm hidden"></div>
+
+            <section class="mb-8 p-6 bg-gray-700 rounded-lg shadow-inner-xl border border-gray-600">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-4 border-b border-gray-600 pb-2">All Recorded Matches</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-gray-700 rounded-lg overflow-hidden">
+                        <thead class="bg-gray-600">
+                            <tr>
+                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Date</th>
+                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Time</th>
+                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Game Type</th>
+                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Your Outcome</th>
+                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Opponents</th>
+                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Teammates</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matchHistoryTableBody" class="text-gray-100">
+                            <!-- Match history rows will be dynamically inserted here by matchHistory.js -->
+                            <tr>
+                                <td colspan="6" class="py-3 px-4 text-center text-sm text-gray-400">Loading match history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noMatchesMessage" class="py-3 px-4 text-center text-sm text-gray-400 hidden">No matches to display yet for this player.</p>
+            </section>
+
+            <div class="mt-8 text-center flex justify-center">
+                <a id="backToProfileLink" href="#" class="btn-secondary">
+                    Back to Player Profile
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="matchHistory.js"></script>
+</body>
+</html>

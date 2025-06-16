@@ -3,17 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pool Calculators</title>
+    <title>Cost Calculators</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css"> 
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4"> <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Pool Calculators</h1> <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl mb-8 mt-4">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Shared Booking Details</h2>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 font-inter flex flex-col items-center justify-center min-h-screen p-4 py-8 text-gray-100">
+
+    <h1 class="text-4xl font-bold text-center text-blue-400 mb-8">Pool Calculators</h1>
+
+    <nav class="w-full max-w-4xl bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 mb-8">
+        <ul class="flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <li>
+                <a href="index.html" class="text-gray-200 hover:text-blue-400 font-medium transition duration-150 ease-in-out">
+                    Leaderboard
+                </a>
+            </li>
+            <li>
+                <a href="calculators.html" class="text-gray-200 hover:text-blue-400 font-medium transition duration-150 ease-in-out">
+                    Calculators
+                </a>
+            </li>
+            <li>
+                <a href="playerList.html" class="text-gray-200 hover:text-blue-400 font-medium transition duration-150 ease-in-out">
+                    All Players
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Shared Controls Container -->
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-2xl mb-8 mt-4">
+        <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Shared Booking Details</h2>
 
         <div class="flex flex-col gap-y-4 w-full"> 
+            <!-- Select Day -->
             <div class="flex flex-col space-y-1"> 
-                <label for="shared_dayOfWeekInput" class="block text-gray-700 text-sm font-bold">Select Day:</label>
-                <select id="shared_dayOfWeekInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10">
+                <label for="shared_dayOfWeekInput" class="block text-gray-300 text-sm font-bold">Select Day:</label>
+                <select id="shared_dayOfWeekInput" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline h-10">
                     <option value="1">Monday</option>
                     <option value="2">Tuesday</option>
                     <option value="3">Wednesday</option>
@@ -24,20 +51,23 @@
                 </select>
             </div>
 
+            <!-- Start Time -->
             <div class="flex flex-col space-y-1"> 
-                <label for="shared_startTimeInput" class="block text-gray-700 text-sm font-bold">Start Time:</label>
-                <input type="time" id="shared_startTimeInput" value="10:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10">
+                <label for="shared_startTimeInput" class="block text-gray-300 text-sm font-bold">Start Time:</label>
+                <input type="time" id="shared_startTimeInput" value="10:00" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline h-10">
             </div>
 
+            <!-- Number of People -->
             <div class="flex flex-col space-y-1"> 
-                <label for="shared_numPlayersInput" class="block text-gray-700 text-sm font-bold">Number of People:</label>
-                <input type="number" id="shared_numPlayersInput" value="1" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10">
+                <label for="shared_numPlayersInput" class="block text-gray-300 text-sm font-bold">Number of People:</label>
+                <input type="number" id="shared_numPlayersInput" value="1" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline h-10">
             </div>
 
+            <!-- Membership Checkbox Group -->
             <div class="flex flex-col space-y-1"> 
-                <label class="block text-gray-700 text-sm font-bold">Membership:</label>
+                <label class="block text-gray-300 text-sm font-bold">Membership:</label>
                 <div class="flex items-center h-10"> 
-                    <label for="shared_memberCheckbox" class="text-gray-700 mr-2 cursor-pointer">Member</label>
+                    <label for="shared_memberCheckbox" class="text-gray-300 mr-2 cursor-pointer">Member</label>
                     <input type="checkbox" id="shared_memberCheckbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"> 
                 </div>
             </div>
@@ -46,50 +76,56 @@
 
     <div class="flex flex-wrap lg:flex-nowrap gap-8 justify-center w-full max-w-6xl">
 
-        <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-1/2 flex flex-col">
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Calculate Cost by Time</h2>
+        <!-- Pool Cost Calculator (Calculate Bill by Time) -->
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full lg:w-1/2 flex flex-col">
+            <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Calculate Cost by Time</h2>
 
             <div class="mb-6">
-                <label for="cost_endTimeInput" class="block text-gray-700 text-sm font-bold mb-2">End Time:</label>
-                <input type="time" id="cost_endTimeInput" value="11:00" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <label for="cost_endTimeInput" class="block text-gray-300 text-sm font-bold mb-2">End Time:</label>
+                <input type="time" id="cost_endTimeInput" value="11:00" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
             <button id="cost_calculateButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-150 ease-in-out transform hover:scale-105">
                 Calculate Cost
             </button>
 
-            <div id="cost_resultContainer" class="mt-6 p-4 bg-gray-50 rounded-lg text-gray-800 text-lg font-semibold hidden">
+            <!-- Output container - initially hidden -->
+            <div id="cost_resultContainer" class="mt-6 p-4 bg-gray-700 rounded-lg shadow-inner-xl border border-gray-600 text-gray-100 text-lg font-semibold hidden">
                 <p>Total Cost: <span id="cost_totalCostOutput"></span></p>
                 <p>Cost per Person: <span id="cost_costPerPersonOutput"></span></p>
                 <p>(Average Hourly Rate: <span id="cost_averageHourlyRateOutput"></span> over <span id="cost_totalDurationOutput"></span> hours)</p>
-                <p id="cost_errorMessage" class="text-red-700 text-sm mt-2 hidden"></p>
+                <p id="cost_errorMessage" class="text-red-400 text-sm mt-2 hidden"></p>
             </div>
         </div>
 
-        <div class="bg-white p-8 rounded-lg shadow-lg w-full lg:w-1/2 flex flex-col">
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Calculate Time by Budget</h2>
+        <!-- Playtime Calculator (Calculate Time by Budget) -->
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full lg:w-1/2 flex flex-col">
+            <h2 class="text-2xl font-semibold text-green-300 mb-6 text-center border-b border-gray-700 pb-2">Calculate Time by Budget</h2>
 
             <div class="mb-4">
-                <label for="budget_amountPerPersonInput" class="block text-gray-700 text-sm font-bold mb-2">Amount per Person ($):</label>
-                <input type="number" id="budget_amountPerPersonInput" value="20.00" min="0" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <label for="budget_amountPerPersonInput" class="block text-gray-300 text-sm font-bold mb-2">Amount per Person ($):</label>
+                <input type="number" id="budget_amountPerPersonInput" value="20.00" min="0" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
             <button id="budget_calculateButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-150 ease-in-out transform hover:scale-105">
                 Calculate Playtime
             </button>
 
-            <div id="budget_resultContainer" class="mt-6 p-4 bg-gray-50 rounded-lg text-gray-800 text-lg font-semibold hidden">
+            <!-- Output container - initially hidden -->
+            <div id="budget_resultContainer" class="mt-6 p-4 bg-gray-700 rounded-lg shadow-inner-xl border border-gray-600 text-gray-100 text-lg font-semibold hidden">
                 <p>Allowable Playtime: <span id="budget_playtimeOutput"></span></p>
-                <p id="budget_errorMessage" class="text-red-700 text-sm mt-2 hidden"></p>
+                <p id="budget_errorMessage" class="text-red-400 text-sm mt-2 hidden"></p>
             </div>
         </div>
+
+        
     </div>
 
-    <a href="index.html" class="mt-8 mb-8 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105">
-        Go to Pool Leaderboard
-    </a>
+    <div class="w-full max-w-4xl h-96 p-8 bg-white-300"></div>
 
+    <!-- Load shared calculation logic first -->
     <script src="poolCostCalculator.js"></script>
+    <!-- Load individual calculator scripts -->
     <script src="app.js"></script>
     <script src="budgetCalculator.js"></script>
 </body>

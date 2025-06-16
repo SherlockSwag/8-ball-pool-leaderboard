@@ -44,9 +44,9 @@ function showMessage(elementId, message, type = 'info') {
     if (element) {
         element.textContent = message;
         element.className = `mt-2 p-2 rounded text-center text-sm ${
-            type === 'error' ? 'bg-red-100 text-red-700' :
-            type === 'success' ? 'bg-green-100 text-green-700' :
-            'bg-blue-100 text-blue-700'
+            type === 'error' ? 'bg-red-700 text-white' : 
+            type === 'success' ? 'bg-green-700 text-white' : 
+            'bg-blue-700 text-white'
         }`;
         element.classList.remove('hidden');
     }
@@ -108,29 +108,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Get elements for Game Type selection
     const gameTypeRadios = document.querySelectorAll('input[name="gameType"]');
-    
-    // Get elements for Player Inputs (New IDs)
-    const player1Input = document.getElementById('player1');
-    const player2Input = document.getElementById('player2');
-    const player3Input = document.getElementById('player3'); // New ID
-    const player4Input = document.getElementById('player4'); // New ID
-    
-    const team1PlayersContainer = document.getElementById('team1PlayersContainer'); // Added for Team 1 styling
-    const team2PlayersContainer = document.getElementById('team2PlayersContainer'); // New container for P3/P4
+    const team1PlayersContainer = document.getElementById('team1PlayersContainer'); // Corrected ID
+    const team2PlayersContainer = document.getElementById('team2PlayersContainer'); // Corrected ID
 
-    // Get elements for Winner Selection (New IDs/labels)
+    // Get elements for Player Inputs
+    const player1Input = document.getElementById('player1'); // Corrected ID
+    const player2Input = document.getElementById('player2'); // Corrected ID
+    const player3Input = document.getElementById('player3'); // Corrected ID
+    const player4Input = document.getElementById('player4'); // Corrected ID
+
+    // Get elements for Winner Selection
     const winnerSelectionDiv = document.getElementById('winnerSelection');
-    const winnerPlayer1RadioDiv = document.getElementById('winner_player1_radio_div'); // Div for Player 1 radio
-    const winnerPlayer2RadioDiv = document.getElementById('winner_player2_radio_div'); // Div for Player 2 radio
-    const winnerPlayer1Label = document.getElementById('winner_player1_label');
-    const winnerPlayer2Label = document.getElementById('winner_player2_label');
-    const winnerTeam1RadioDiv = document.getElementById('winner_team1_radio_div'); // Div for Team 1 radio
-    const winnerTeam2RadioDiv = document.getElementById('winner_team2_radio_div'); // Div for Team 2 radio
-    const team1Player1Label = document.getElementById('team1_player1_label');
-    const team1Player2Label = document.getElementById('team1_player2_label'); // Changed from team1Player3Label
-    const team2Player3Label = document.getElementById('team2_player3_label'); // Changed from team2Player2Label
-    const team2Player4Label = document.getElementById('team2_player4_label'); // Changed from team2Player4Label
+    const winnerPlayer1RadioDiv = document.getElementById('winner_player1_radio_div'); // Corrected ID
+    const winnerPlayer2RadioDiv = document.getElementById('winner_player2_radio_div'); // Corrected ID
+    const winnerTeam1RadioDiv = document.getElementById('winner_team1_radio_div'); // Corrected ID
+    const winnerTeam2RadioDiv = document.getElementById('winner_team2_radio_div'); // Corrected ID
 
+    const winnerPlayer1Label = document.getElementById('winner_player1_label'); // Corrected ID
+    const winnerPlayer2Label = document.getElementById('winner_player2_label'); // Corrected ID
+    const team1Player1Label = document.getElementById('team1_player1_label'); // Corrected ID
+    const team1Player2Label = document.getElementById('team1_player2_label'); // Corrected ID (was player3)
+    const team2Player3Label = document.getElementById('team2_player3_label'); // Corrected ID (was player3)
+    const team2Player4Label = document.getElementById('team2_player4_label'); // Corrected ID (was player4)
 
     const addMatchButton = document.getElementById('addMatchButton');
     const leaderboardTableBody = document.getElementById('leaderboardTableBody');
@@ -152,15 +151,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedGameType = document.querySelector('input[name="gameType"]:checked').value;
         hideMessage('matchErrorMessage'); // Clear match errors on game type change
 
-        // Reset player inputs (optional, but good for clarity)
-        player1Input.value = '';
-        player2Input.value = '';
-        player3Input.value = '';
-        player4Input.value = '';
-
         if (selectedGameType === '1v1') {
-            team1PlayersContainer.classList.remove('hidden'); // Ensure Team 1 is visible
-            team2PlayersContainer.classList.add('hidden'); // Hide Team 2 players
+            team1PlayersContainer.classList.remove('hidden'); // Player 1 & 2 container
+            team2PlayersContainer.classList.add('hidden');   // Player 3 & 4 container
 
             // Show 1v1 winner radios, hide 2v2 winner radios
             winnerPlayer1RadioDiv.classList.remove('hidden');
@@ -168,12 +161,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             winnerTeam1RadioDiv.classList.add('hidden');
             winnerTeam2RadioDiv.classList.add('hidden');
 
-            // Set default winner for 1v1
+            // Reset winner selection to Player 1 (for 1v1)
             winnerSelectionDiv.querySelector('input[value="player1"]').checked = true;
 
         } else { // 2v2
-            team1PlayersContainer.classList.remove('hidden'); // Ensure Team 1 is visible
-            team2PlayersContainer.classList.remove('hidden'); // Show Team 2 players
+            team1PlayersContainer.classList.remove('hidden'); // Player 1 & 2 container
+            team2PlayersContainer.classList.remove('hidden'); // Player 3 & 4 container
 
             // Hide 1v1 winner radios, show 2v2 winner radios
             winnerPlayer1RadioDiv.classList.add('hidden');
@@ -181,7 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             winnerTeam1RadioDiv.classList.remove('hidden');
             winnerTeam2RadioDiv.classList.remove('hidden');
 
-            // Set default winner for 2v2
+            // Reset winner selection to Team 1 (for 2v2)
             winnerSelectionDiv.querySelector('input[value="team1"]').checked = true;
         }
         updateWinnerLabels(); // Update team labels immediately
@@ -195,7 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         winnerPlayer2Label.textContent = player2Input.value.trim() || 'Player 2';
         
         team1Player1Label.textContent = player1Input.value.trim() || 'Player 1';
-        team1Player2Label.textContent = player2Input.value.trim() || 'Player 2'; // Player 2 is now on Team 1
+        team1Player2Label.textContent = player2Input.value.trim() || 'Player 2'; // Should be player2 for team 1
         team2Player3Label.textContent = player3Input.value.trim() || 'Player 3';
         team2Player4Label.textContent = player4Input.value.trim() || 'Player 4';
     }
@@ -217,34 +210,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const gameType = document.querySelector('input[name="gameType"]:checked').value;
-        let winnerPlayers = [];
-        let loserPlayers = [];
+        let winnerPlayerNames = [];
+        let loserPlayerNames = [];
 
         try {
-            const p1 = player1Input.value.trim();
-            const p2 = player2Input.value.trim();
-            const p3 = player3Input.value.trim();
-            const p4 = player4Input.value.trim();
-
             if (gameType === '1v1') {
+                const p1 = player1Input.value.trim();
+                const p2 = player2Input.value.trim();
+
                 if (!p1 || !p2) {
                     showMessage('matchErrorMessage', 'Please enter names for both Player 1 and Player 2.', 'error');
                     return;
                 }
                 if (p1 === p2) {
-                    showMessage('matchErrorMessage', 'Player names must be different in a 1v1 match.', 'error');
+                    showMessage('matchErrorMessage', 'Player names must be different in 1v1 match.', 'error');
                     return;
                 }
-
+                
                 const selectedWinnerValue = document.querySelector('input[name="winner"]:checked')?.value;
                 if (!selectedWinnerValue) {
                     showMessage('matchErrorMessage', 'Please select a winner.', 'error');
                     return;
                 }
-                winnerPlayers.push(selectedWinnerValue === 'player1' ? p1 : p2);
-                loserPlayers.push(selectedWinnerValue === 'player1' ? p2 : p1);
+
+                if (selectedWinnerValue === 'player1') { // Corrected from player1v1_1
+                    winnerPlayerNames.push(p1);
+                    loserPlayerNames.push(p2);
+                } else { // player2
+                    winnerPlayerNames.push(p2);
+                    loserPlayerNames.push(p1);
+                }
 
             } else { // 2v2
+                const p1 = player1Input.value.trim();
+                const p2 = player2Input.value.trim();
+                const p3 = player3Input.value.trim();
+                const p4 = player4Input.value.trim();
+
                 if (!p1 || !p2 || !p3 || !p4) {
                     showMessage('matchErrorMessage', 'Please enter names for all four players.', 'error');
                     return;
@@ -255,7 +257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     showMessage('matchErrorMessage', 'All four player names must be unique for a 2v2 match.', 'error');
                     return;
                 }
-
+                
                 const selectedWinnerValue = document.querySelector('input[name="winner"]:checked')?.value;
                 if (!selectedWinnerValue) {
                     showMessage('matchErrorMessage', 'Please select a winning team.', 'error');
@@ -263,33 +265,58 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 if (selectedWinnerValue === 'team1') {
-                    winnerPlayers.push(p1, p2); // Team 1: Player 1 & Player 2
-                    loserPlayers.push(p3, p4); // Team 2: Player 3 & Player 4
+                    winnerPlayerNames.push(p1, p2); // Team 1: Player 1 and Player 2
+                    loserPlayerNames.push(p3, p4);   // Team 2: Player 3 and Player 4
                 } else { // team2
-                    winnerPlayers.push(p3, p4); // Team 2: Player 3 & Player 4
-                    loserPlayers.push(p1, p2); // Team 1: Player 1 & Player 2
+                    winnerPlayerNames.push(p3, p4);   // Team 2: Player 3 and Player 4
+                    loserPlayerNames.push(p1, p2); // Team 1: Player 1 and Player 2
                 }
             }
 
             const batch = writeBatch(db);
 
-            // Update winner stats
-            for (const playerName of winnerPlayers) {
+            // Function to ensure player document exists and update stats
+            async function updatePlayerStats(playerName, gameType, outcome, opponents = [], teammates = []) {
                 const playerDocRef = doc(db, PLAYERS_COLLECTION_PATH, playerName);
-                batch.set(playerDocRef, {
+                const playerDocSnap = await getDoc(playerDocRef); // Get current state to merge
+                const currentData = playerDocSnap.exists() ? playerDocSnap.data() : {};
+
+                const updates = {
                     name: playerName,
-                    [gameType === '1v1' ? 'wins1v1' : 'wins2v2']: increment(1)
-                }, { merge: true });
+                    [`${outcome}${gameType}`]: increment(1) // e.g., wins1v1, losses2v2
+                };
+
+                // Add match history
+                const matchHistoryRef = collection(playerDocRef, 'matches');
+                const newMatch = {
+                    gameType: gameType,
+                    outcome: outcome, // 'win' or 'loss'
+                    opponents: opponents.filter(name => name !== playerName), // Opponents are others in match, excluding self
+                    teamMates: teammates.filter(name => name !== playerName), // Teammates are others on same team, excluding self
+                    timestamp: new Date().toISOString() // ISO string for easy sorting
+                };
+                batch.set(doc(matchHistoryRef), newMatch); // Add new match document
+
+                batch.set(playerDocRef, updates, { merge: true }); // Update player's summary stats
             }
 
-            // Update loser stats
-            for (const playerName of loserPlayers) {
-                const playerDocRef = doc(db, PLAYERS_COLLECTION_PATH, playerName);
-                batch.set(playerDocRef, {
-                    name: playerName,
-                    [gameType === '1v1' ? 'losses1v1' : 'losses2v2']: increment(1)
-                }, { merge: true });
+            // Prepare batch updates for all players involved
+            if (gameType === '1v1') {
+                await updatePlayerStats(winnerPlayerNames[0], '1v1', 'win', [loserPlayerNames[0]]);
+                await updatePlayerStats(loserPlayerNames[0], '1v1', 'loss', [winnerPlayerNames[0]]);
+            } else { // 2v2
+                // For winners
+                for (const winnerName of winnerPlayerNames) {
+                    const teammates = winnerPlayerNames.filter(name => name !== winnerName);
+                    await updatePlayerStats(winnerName, '2v2', 'win', loserPlayerNames, teammates);
+                }
+                // For losers
+                for (const loserName of loserPlayerNames) {
+                    const teammates = loserPlayerNames.filter(name => name !== loserName);
+                    await updatePlayerStats(loserName, '2v2', 'loss', winnerPlayerNames, teammates);
+                }
             }
+
 
             await batch.commit();
             showMessage('matchErrorMessage', 'Match added successfully!', 'success');
@@ -300,7 +327,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             player3Input.value = '';
             player4Input.value = '';
             updateWinnerLabels(); // Reset winner labels
-            updateGameTypeDisplay(); // Reset to 1v1 view and clear fields for next entry
+            updateGameTypeDisplay(); // Reset to 1v1 view
 
             await fetchAndRenderLeaderboard(); // Refresh leaderboard
         } catch (error) {
@@ -317,8 +344,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideMessage('clearDataMessage'); // Hide any previous clear messages
         clearConfirmationMessage.classList.remove('hidden'); // Show the confirmation prompt
         clearAllDataButton.classList.add('hidden'); // Temporarily hide the main clear button
-        console.log("Visibility after initiate: clearAllDataButton hidden?", clearAllDataButton.classList.contains('hidden'));
-        console.log("Visibility after initiate: clearConfirmationMessage hidden?", clearConfirmationMessage.classList.contains('hidden'));
     }
 
     /**
@@ -329,10 +354,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideMessage('clearConfirmationMessage'); // Hide confirmation prompt
         showMessage('clearDataMessage', 'Clearing all data...', 'info');
         clearAllDataButton.classList.remove('hidden'); // Show main clear button again
-        console.log("Visibility after confirm: clearAllDataButton hidden?", clearAllDataButton.classList.contains('hidden'));
-        console.log("Visibility after confirm: clearConfirmationMessage hidden?", clearConfirmationMessage.classList.contains('hidden'));
-        console.log("Visibility after confirm: clearDataMessage hidden?", clearDataMessage.classList.contains('hidden'));
-
 
         if (!db || !auth.currentUser) {
             showMessage('clearDataMessage', 'Error: Firebase not ready or not authenticated. Cannot clear data.', 'error');
@@ -349,12 +370,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            const batch = writeBatch(db);
-            querySnapshot.docs.forEach((doc) => {
-                batch.delete(doc.ref);
-            });
+            // Batch delete main player documents and their subcollections
+            const deleteBatch = writeBatch(db);
+            for (const playerDoc of querySnapshot.docs) {
+                deleteBatch.delete(playerDoc.ref); // Delete main player document
+                
+                // Delete all documents in the 'matches' subcollection for this player
+                const matchesSnapshot = await getDocs(collection(playerDoc.ref, 'matches'));
+                matchesSnapshot.docs.forEach(matchDoc => {
+                    deleteBatch.delete(matchDoc.ref);
+                });
+            }
 
-            await batch.commit();
+            await deleteBatch.commit();
             showMessage('clearDataMessage', 'All player data cleared successfully!', 'success');
             await fetchAndRenderLeaderboard(); // Refresh leaderboard to show empty state
         } catch (error) {
@@ -371,9 +399,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideMessage('clearConfirmationMessage'); // Hide confirmation prompt
         hideMessage('clearDataMessage'); // Hide any messages related to clear process
         clearAllDataButton.classList.remove('hidden'); // Show the main clear button
-        console.log("Visibility after cancel: clearAllDataButton hidden?", clearAllDataButton.classList.contains('hidden'));
-        console.log("Visibility after cancel: clearConfirmationMessage hidden?", clearConfirmationMessage.classList.contains('hidden'));
-        console.log("Visibility after cancel: clearDataMessage hidden?", clearDataMessage.classList.contains('hidden'));
     }
 
 
@@ -396,7 +421,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 players.push(doc.data());
             });
 
-            // Sort players by overall win rate (descending)
+            // Sort players: primarily by overall win rate (desc), then total wins (desc)
             players.sort((a, b) => {
                 const aTotalWins = (a.wins1v1 || 0) + (a.wins2v2 || 0);
                 const aTotalLosses = (a.losses1v1 || 0) + (a.losses2v2 || 0);
@@ -411,8 +436,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (bWinRate !== aWinRate) {
                     return bWinRate - aWinRate; // Sort by win rate descending
                 }
-                // If win rates are equal, sort by total wins descending
-                return bTotalWins - aTotalWins;
+                return bTotalWins - aTotalWins; // Then by total wins descending
             });
 
             leaderboardTableBody.innerHTML = ''; // Clear existing rows
@@ -420,7 +444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (players.length === 0) {
                 leaderboardTableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="py-3 px-4 text-center text-sm text-gray-500">No players yet. Add a match to get started!</td>
+                        <td colspan="7" class="py-3 px-4 text-center text-sm text-gray-400">No players yet. Add a match to get started!</td>
                     </tr>
                 `;
             } else {
@@ -431,18 +455,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(2) : 'N/A';
 
                     const row = `
-                        <tr class="border-b border-gray-200 odd:bg-white even:bg-gray-50 hover:bg-gray-100"> <!-- Added zebra striping -->
-                            <td class="py-3 px-4 text-center text-sm font-semibold text-gray-800">${index + 1}</td> <!-- Display Rank -->
-                            <td class="py-3 px-4 text-left text-sm text-gray-800">
-                                <a href="playerProfile.html?playerName=${encodeURIComponent(player.name)}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                        <tr class="border-b border-gray-600 bg-gray-800 hover:bg-gray-700"> <!-- Removed odd: and even: classes -->
+                            <td class="py-3 px-4 text-left text-sm text-gray-50">${index + 1}</td> <!-- Rank column -->
+                            <td class="py-3 px-4 text-left text-sm font-medium text-blue-300">
+                                <a href="playerProfile.html?playerName=${encodeURIComponent(player.name)}" class="hover:underline">
                                     ${player.name}
                                 </a>
                             </td>
-                            <td class="py-3 px-4 text-center text-sm text-gray-800">${player.wins1v1 || 0}</td>
-                            <td class="py-3 px-4 text-center text-sm text-gray-800">${player.losses1v1 || 0}</td>
-                            <td class="py-3 px-4 text-center text-sm text-gray-800">${player.wins2v2 || 0}</td>
-                            <td class="py-3 px-4 text-center text-sm text-gray-800">${player.losses2v2 || 0}</td>
-                            <td class="py-3 px-4 text-center text-sm text-gray-800">${winRate}%</td>
+                            <td class="py-3 px-4 text-center text-sm text-gray-50">${player.wins1v1 || 0}</td>
+                            <td class="py-3 px-4 text-center text-sm text-gray-50">${player.losses1v1 || 0}</td>
+                            <td class="py-3 px-4 text-center text-sm text-gray-50">${player.wins2v2 || 0}</td>
+                            <td class="py-3 px-4 text-center text-sm text-gray-50">${player.losses2v2 || 0}</td>
+                            <td class="py-3 px-4 text-center text-sm text-gray-50">${winRate}%</td>
                         </tr>
                     `;
                     leaderboardTableBody.innerHTML += row;

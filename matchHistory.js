@@ -147,9 +147,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
             } else {
                 matchHistory.forEach(match => {
-                    // Ensure timestamp is converted from Firestore Timestamp object if it's not already a Date
-                    const date = match.timestamp ? new Date(match.timestamp.toDate()).toLocaleDateString() : 'N/A';
-                    const time = match.timestamp ? new Date(match.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+                    let matchDate;
+                    if (match.timestamp && typeof match.timestamp.toDate === 'function') {
+                        // It's a Firestore Timestamp object
+                        matchDate = match.timestamp.toDate();
+                    } else if (match.timestamp instanceof Date) {
+                        // It's already a JavaScript Date object
+                        matchDate = match.timestamp;
+                    } else if (typeof match.timestamp === 'number') {
+                        // It's a Unix timestamp (milliseconds)
+                        matchDate = new Date(match.timestamp);
+                    } else {
+                        // Fallback for other unexpected formats
+                        matchDate = null; 
+                        console.warn('Unexpected timestamp format for match:', match);
+                    }
+
+                    const date = matchDate ? matchDate.toLocaleDateString() : 'N/A';
+                    const time = matchDate ? matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
                     const gameType = match.gameType ? match.gameType.toUpperCase() : 'N/A';
                     
                     let yourOutcome = 'N/A';
@@ -157,17 +172,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     let teammates = [];
 
                     if (match.gameType === '1v1') {
-                        // For 1v1, the opponent is the other player in the opponents array
-                        // Ensure match.opponents is an array before using find
                         const opponent = Array.isArray(match.opponents) ? match.opponents.find(p => p !== playerName) : undefined;
                         if (opponent) opponents.push(opponent);
-                        yourOutcome = (match.outcome === 'win') ? 'Win 🟢' : 'Loss 🔴';
+                        yourOutcome = (match.outcome === 'win') ? 'Win 🏆' : 'Loss 📉';
                     } else if (match.gameType === '2v2') {
-                        // Use match.outcome directly for 2v2 to reflect win/loss for the current player
-                        yourOutcome = (match.outcome === 'win') ? 'Win 🟢' : 'Loss 🔴';
-
-                        // Determine teammates and opponents from the match record
-                        // Add defensive checks for opponents and teammates arrays
+                        yourOutcome = (match.outcome === 'win') ? 'Win 🏆' : 'Loss 📉';
                         if (Array.isArray(match.teamMates)) {
                             match.teamMates.forEach(tm => {
                                 if (tm !== playerName) teammates.push(tm);

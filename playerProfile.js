@@ -455,11 +455,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         viewMatchHistoryLink.addEventListener('click', (event) => {
             event.preventDefault(); // Prevent default link behavior
             if (currentPlayerName) {
-                // Construct a URL for a hypothetical match history page
-                // For now, let's just log it or show a message, as you don't have a match history page yet.
                 console.log(`Navigating to match history for ${currentPlayerName}`);
-                showMessage('profileErrorMessage', `Feature not implemented: Displaying full match history for ${currentPlayerName}.`, 'info');
-                // In a real app, you'd navigate: window.location.href = `matchHistory.html?playerName=${encodeURIComponent(currentPlayerName)}`;
+                // Remove the "Feature not implemented" message, or change it to a navigation message
+                showMessage('profileErrorMessage', `Navigating to match history for ${currentPlayerName}.`, 'info'); 
+                // In a real app, you'd navigate:
+                window.location.href = `matchHistory.html?playerName=${encodeURIComponent(currentPlayerName)}`; // <--- UNCOMMENT THIS LINE
             } else {
                 showMessage('profileErrorMessage', 'No player selected to view match history.', 'error');
             }

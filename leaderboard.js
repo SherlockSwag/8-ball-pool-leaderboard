@@ -1,7 +1,19 @@
 // leaderboard.js
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-import { getFirestore, doc, setDoc, collection, query, getDocs, increment, writeBatch, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+import { 
+    getFirestore, 
+    doc, 
+    setDoc, 
+    collection, 
+    query, 
+    getDocs, 
+    increment, 
+    writeBatch, 
+    deleteDoc, 
+    getDoc,
+    serverTimestamp // Ensure serverTimestamp is imported here
+} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
 // Import your local firebase-config.js
 import { firebaseConfig as localFirebaseConfig } from './firebase-config.js'; 
@@ -12,25 +24,21 @@ let currentUserId = null;
 
 // Determine the final firebaseConfig to use: Canvas-provided or local fallback
 let finalFirebaseConfig = {};
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'local-pool-tracker-app'; // Fallback ID for local testing
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'local-pool-tracker-app'; 
 
 try {
-    // Prefer Canvas-provided config if it's a valid non-empty string
     if (typeof __firebase_config === 'string' && __firebase_config.trim().length > 0) {
         finalFirebaseConfig = JSON.parse(__firebase_config);
         console.log("Using Canvas-provided Firebase config.");
     } else {
-        // Fallback to locally imported config
         finalFirebaseConfig = localFirebaseConfig;
         console.warn("Runtime variable '__firebase_config' is not valid or empty. Using local 'firebase-config.js'.");
-        // Check if the local config is still placeholder
         if (finalFirebaseConfig.projectId === "YOUR_FIREBASE_PROJECT_ID") {
             console.warn("Using placeholder Firebase Project ID from local config. Firestore operations will not connect to a real project unless configured with your actual Firebase credentials in firebase-config.js.");
         }
     }
 } catch (e) {
     console.error("Error parsing __firebase_config or loading local config. Using local fallback. Details:", e);
-    // If parsing fails, fall back to locally imported config
     finalFirebaseConfig = localFirebaseConfig;
     if (finalFirebaseConfig.projectId === "YOUR_FIREBASE_PROJECT_ID") {
         console.warn("Using placeholder Firebase Project ID from local config due to error. Firestore operations will not connect to a real project unless configured with your actual Firebase credentials in firebase-config.js.");
@@ -108,28 +116,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Get elements for Game Type selection
     const gameTypeRadios = document.querySelectorAll('input[name="gameType"]');
-    const team1PlayersContainer = document.getElementById('team1PlayersContainer'); // Corrected ID
-    const team2PlayersContainer = document.getElementById('team2PlayersContainer'); // Corrected ID
+    const team1PlayersContainer = document.getElementById('team1PlayersContainer'); 
+    const team2PlayersContainer = document.getElementById('team2PlayersContainer'); 
 
     // Get elements for Player Inputs
-    const player1Input = document.getElementById('player1'); // Corrected ID
-    const player2Input = document.getElementById('player2'); // Corrected ID
-    const player3Input = document.getElementById('player3'); // Corrected ID
-    const player4Input = document.getElementById('player4'); // Corrected ID
+    const player1Input = document.getElementById('player1'); 
+    const player2Input = document.getElementById('player2'); 
+    const player3Input = document.getElementById('player3'); 
+    const player4Input = document.getElementById('player4'); 
 
     // Get elements for Winner Selection
     const winnerSelectionDiv = document.getElementById('winnerSelection');
-    const winnerPlayer1RadioDiv = document.getElementById('winner_player1_radio_div'); // Corrected ID
-    const winnerPlayer2RadioDiv = document.getElementById('winner_player2_radio_div'); // Corrected ID
-    const winnerTeam1RadioDiv = document.getElementById('winner_team1_radio_div'); // Corrected ID
-    const winnerTeam2RadioDiv = document.getElementById('winner_team2_radio_div'); // Corrected ID
+    const winnerPlayer1RadioDiv = document.getElementById('winner_player1_radio_div'); 
+    const winnerPlayer2RadioDiv = document.getElementById('winner_player2_radio_div'); 
+    const winnerTeam1RadioDiv = document.getElementById('winner_team1_radio_div'); 
+    const winnerTeam2RadioDiv = document.getElementById('winner_team2_radio_div'); 
 
-    const winnerPlayer1Label = document.getElementById('winner_player1_label'); // Corrected ID
-    const winnerPlayer2Label = document.getElementById('winner_player2_label'); // Corrected ID
-    const team1Player1Label = document.getElementById('team1_player1_label'); // Corrected ID
-    const team1Player2Label = document.getElementById('team1_player2_label'); // Corrected ID (was player3)
-    const team2Player3Label = document.getElementById('team2_player3_label'); // Corrected ID (was player3)
-    const team2Player4Label = document.getElementById('team2_player4_label'); // Corrected ID (was player4)
+    // Get the actual radio buttons themselves for setting checked state
+    const winnerPlayer1Radio = document.getElementById('winner_player1'); 
+    const winnerPlayer2Radio = document.getElementById('winner_player2'); 
+    const winnerTeam1Radio = document.getElementById('winner_team1'); 
+    const winnerTeam2Radio = document.getElementById('winner_team2'); 
+
+    const gameType1v1Radio = document.getElementById('gameType1v1'); // Assuming 'gameType1v1' is the ID of the radio input
+    const gameType2v2Radio = document.getElementById('gameType2v2'); // Assuming 'gameType2v2' is the ID of the radio input
+
+    const winnerPlayer1Label = document.getElementById('winner_player1_label'); 
+    const winnerPlayer2Label = document.getElementById('winner_player2_label'); 
+    const team1Player1Label = document.getElementById('team1_player1_label'); 
+    const team1Player2Label = document.getElementById('team1_player2_label'); 
+    const team2Player3Label = document.getElementById('team2_player3_label'); 
+    const team2Player4Label = document.getElementById('team2_player4_label'); 
 
     const addMatchButton = document.getElementById('addMatchButton');
     const leaderboardTableBody = document.getElementById('leaderboardTableBody');
@@ -149,35 +166,35 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
     function updateGameTypeDisplay() {
         const selectedGameType = document.querySelector('input[name="gameType"]:checked').value;
-        hideMessage('matchErrorMessage'); // Clear match errors on game type change
+        hideMessage('matchErrorMessage'); 
 
         if (selectedGameType === '1v1') {
-            team1PlayersContainer.classList.remove('hidden'); // Player 1 & 2 container
-            team2PlayersContainer.classList.add('hidden');   // Player 3 & 4 container
+            team1PlayersContainer.classList.remove('hidden'); 
+            team2PlayersContainer.classList.add('hidden');   
 
-            // Show 1v1 winner radios, hide 2v2 winner radios
             winnerPlayer1RadioDiv.classList.remove('hidden');
             winnerPlayer2RadioDiv.classList.remove('hidden');
             winnerTeam1RadioDiv.classList.add('hidden');
             winnerTeam2RadioDiv.classList.add('hidden');
 
-            // Reset winner selection to Player 1 (for 1v1)
-            winnerSelectionDiv.querySelector('input[value="player1"]').checked = true;
+            // Set the default winner radio button for 1v1
+            if (winnerPlayer1Radio) winnerPlayer1Radio.checked = true;
+            if (winnerPlayer2Radio) winnerPlayer2Radio.checked = false;
 
         } else { // 2v2
-            team1PlayersContainer.classList.remove('hidden'); // Player 1 & 2 container
-            team2PlayersContainer.classList.remove('hidden'); // Player 3 & 4 container
+            team1PlayersContainer.classList.remove('hidden'); 
+            team2PlayersContainer.classList.remove('hidden'); 
 
-            // Hide 1v1 winner radios, show 2v2 winner radios
             winnerPlayer1RadioDiv.classList.add('hidden');
             winnerPlayer2RadioDiv.classList.add('hidden');
             winnerTeam1RadioDiv.classList.remove('hidden');
             winnerTeam2RadioDiv.classList.remove('hidden');
 
-            // Reset winner selection to Team 1 (for 2v2)
-            winnerSelectionDiv.querySelector('input[value="team1"]').checked = true;
+            // Set the default winner radio button for 2v2
+            if (winnerTeam1Radio) winnerTeam1Radio.checked = true;
+            if (winnerTeam2Radio) winnerTeam2Radio.checked = false;
         }
-        updateWinnerLabels(); // Update team labels immediately
+        updateWinnerLabels(); 
     }
 
     /**
@@ -188,16 +205,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         winnerPlayer2Label.textContent = player2Input.value.trim() || 'Player 2';
         
         team1Player1Label.textContent = player1Input.value.trim() || 'Player 1';
-        team1Player2Label.textContent = player2Input.value.trim() || 'Player 2'; // Should be player2 for team 1
+        team1Player2Label.textContent = player2Input.value.trim() || 'Player 2'; 
         team2Player3Label.textContent = player3Input.value.trim() || 'Player 3';
         team2Player4Label.textContent = player4Input.value.trim() || 'Player 4';
+    }
+
+    /**
+     * Clears all input fields in the "Add Match" form.
+     * This function is now defined within the DOMContentLoaded scope.
+     */
+    function clearMatchInputs() {
+        player1Input.value = '';
+        player2Input.value = '';
+        player3Input.value = '';
+        player4Input.value = '';
+
+        // Reset winner selection radio buttons to default 1v1 state
+        if (winnerPlayer1Radio) winnerPlayer1Radio.checked = true;
+        if (winnerPlayer2Radio) winnerPlayer2Radio.checked = false;
+        if (winnerTeam1Radio) winnerTeam1Radio.checked = false;
+        if (winnerTeam2Radio) winnerTeam2Radio.checked = false;
+
+        // Reset game type selection back to 1v1
+        if (gameType1v1Radio) gameType1v1Radio.checked = true;
+        if (gameType2v2Radio) gameType2v2Radio.checked = false;
+
+        // Call display update functions to ensure UI reflects the reset state
+        updateWinnerLabels(); 
+        updateGameTypeDisplay(); 
+        
+        hideMessage('matchErrorMessage'); // Also hide any lingering match messages
     }
 
     /**
      * Handles adding a match to Firestore and updating leaderboard.
      */
     async function handleAddMatch() {
-        hideMessage('matchErrorMessage'); // Clear previous errors
+        hideMessage('matchErrorMessage'); 
         showMessage('matchErrorMessage', 'Adding match...', 'info');
 
         if (!db || !auth.currentUser) {
@@ -233,10 +277,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return;
                 }
 
-                if (selectedWinnerValue === 'player1') { // Corrected from player1v1_1
+                if (selectedWinnerValue === 'player1') { 
                     winnerPlayerNames.push(p1);
                     loserPlayerNames.push(p2);
-                } else { // player2
+                } else { 
                     winnerPlayerNames.push(p2);
                     loserPlayerNames.push(p1);
                 }
@@ -265,71 +309,94 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 if (selectedWinnerValue === 'team1') {
-                    winnerPlayerNames.push(p1, p2); // Team 1: Player 1 and Player 2
-                    loserPlayerNames.push(p3, p4);   // Team 2: Player 3 and Player 4
+                    winnerPlayerNames.push(p1, p2); 
+                    loserPlayerNames.push(p3, p4);   
                 } else { // team2
-                    winnerPlayerNames.push(p3, p4);   // Team 2: Player 3 and Player 4
-                    loserPlayerNames.push(p1, p2); // Team 1: Player 1 and Player 2
+                    winnerPlayerNames.push(p3, p4);   
+                    loserPlayerNames.push(p1, p2); 
                 }
             }
 
             const batch = writeBatch(db);
 
-            // Function to ensure player document exists and update stats
-            async function updatePlayerStats(playerName, gameType, outcome, opponents = [], teammates = []) {
+            // Generate a unique ID for this match that will be used for all player's match history entries
+            const matchId = doc(collection(db, 'dummyCollectionForIDGeneration')).id; 
+
+            // Function to ensure player document exists and update stats and match history
+            // This function now takes the batch and matchId as arguments
+            async function updatePlayerStatsInBatch(playerName, gameType, outcome, opponents = [], teammates = []) {
                 const playerDocRef = doc(db, PLAYERS_COLLECTION_PATH, playerName);
-                const playerDocSnap = await getDoc(playerDocRef); // Get current state to merge
-                const currentData = playerDocSnap.exists() ? playerDocSnap.data() : {};
-
+                
+                // Update player's general stats (wins, losses, games played)
                 const updates = {
-                    name: playerName,
-                    [`${outcome}${gameType}`]: increment(1) // e.g., wins1v1, losses2v2
+                    name: playerName, // Ensure name is always set
+                    [`gamesPlayed${gameType.replace('v', '')}`]: increment(1),
+                    [`${outcome}${gameType.replace('v', '')}`]: increment(1)
                 };
+                batch.set(playerDocRef, updates, { merge: true }); 
 
-                // Add match history
-                const matchHistoryRef = collection(playerDocRef, 'matches');
-                const newMatch = {
+                // Record the match in the player's match history subcollection
+                const playerMatchRecord = {
+                    gameId: matchId, // Unique ID for this match
                     gameType: gameType,
-                    outcome: outcome, // 'win' or 'loss'
-                    opponents: opponents.filter(name => name !== playerName), // Opponents are others in match, excluding self
-                    teamMates: teammates.filter(name => name !== playerName), // Teammates are others on same team, excluding self
-                    timestamp: new Date().toISOString() // ISO string for easy sorting
+                    outcome: outcome, 
+                    opponents: opponents, 
+                    teamMates: teammates, 
+                    timestamp: serverTimestamp() // Correctly using serverTimestamp()
                 };
-                batch.set(doc(matchHistoryRef), newMatch); // Add new match document
+                batch.set(doc(playerDocRef, 'matches', matchId), playerMatchRecord); 
 
-                batch.set(playerDocRef, updates, { merge: true }); // Update player's summary stats
+                // Update rivalries and partnerships
+                if (gameType === '1v1') {
+                    const rivalryRef = doc(playerDocRef, 'rivalries', opponents[0]);
+                    batch.set(rivalryRef, {
+                        wins: increment(outcome === 'win' ? 1 : 0),
+                        losses: increment(outcome === 'loss' ? 1 : 0)
+                    }, { merge: true });
+                } else if (gameType === '2v2') {
+                    // Partnerships
+                    for (const teammate of teammates) { // Iterate over actual teammates, not all winning/losing team members
+                        const partnershipRef = doc(playerDocRef, 'partnerships', teammate);
+                        batch.set(partnershipRef, {
+                            wins: increment(outcome === 'win' ? 1 : 0),
+                            losses: increment(outcome === 'loss' ? 1 : 0)
+                        }, { merge: true });
+                    }
+                    // Rivalries
+                    for (const opponent of opponents) {
+                        const rivalryRef = doc(playerDocRef, 'rivalries', opponent);
+                        batch.set(rivalryRef, {
+                            wins: increment(outcome === 'win' ? 1 : 0),
+                            losses: increment(outcome === 'loss' ? 1 : 0)
+                        }, { merge: true });
+                    }
+                }
             }
 
             // Prepare batch updates for all players involved
             if (gameType === '1v1') {
-                await updatePlayerStats(winnerPlayerNames[0], '1v1', 'win', [loserPlayerNames[0]]);
-                await updatePlayerStats(loserPlayerNames[0], '1v1', 'loss', [winnerPlayerNames[0]]);
+                await updatePlayerStatsInBatch(winnerPlayerNames[0], '1v1', 'win', loserPlayerNames); // Opponent is the loser
+                await updatePlayerStatsInBatch(loserPlayerNames[0], '1v1', 'loss', winnerPlayerNames); // Opponent is the winner
             } else { // 2v2
                 // For winners
                 for (const winnerName of winnerPlayerNames) {
-                    const teammates = winnerPlayerNames.filter(name => name !== winnerName);
-                    await updatePlayerStats(winnerName, '2v2', 'win', loserPlayerNames, teammates);
+                    const teammates = winnerPlayerNames.filter(p => p !== winnerName);
+                    await updatePlayerStatsInBatch(winnerName, '2v2', 'win', loserPlayerNames, teammates);
                 }
                 // For losers
                 for (const loserName of loserPlayerNames) {
-                    const teammates = loserPlayerNames.filter(name => name !== loserName);
-                    await updatePlayerStats(loserName, '2v2', 'loss', winnerPlayerNames, teammates);
+                    const teammates = loserPlayerNames.filter(p => p !== loserName);
+                    await updatePlayerStatsInBatch(loserName, '2v2', 'loss', winnerPlayerNames, teammates);
                 }
             }
-
-
+            
             await batch.commit();
             showMessage('matchErrorMessage', 'Match added successfully!', 'success');
 
-            // Clear inputs
-            player1Input.value = '';
-            player2Input.value = '';
-            player3Input.value = '';
-            player4Input.value = '';
-            updateWinnerLabels(); // Reset winner labels
-            updateGameTypeDisplay(); // Reset to 1v1 view
+            // Clear inputs and refresh UI
+            clearMatchInputs(); // Call the now accessible clearMatchInputs
+            await fetchAndRenderLeaderboard(); 
 
-            await fetchAndRenderLeaderboard(); // Refresh leaderboard
         } catch (error) {
             console.error("Error adding match:", error);
             showMessage('matchErrorMessage', `Error adding match: ${error.message}`, 'error');
@@ -478,7 +545,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             showMessage('leaderboardErrorMessage', `Error loading leaderboard: ${error.message}`, 'error');
         }
     }
-
 
     // Event Listeners
     gameTypeRadios.forEach(radio => radio.addEventListener('change', updateGameTypeDisplay));

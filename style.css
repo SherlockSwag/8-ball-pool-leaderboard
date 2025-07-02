@@ -5,7 +5,7 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: #1a202c; /* Deep gray for a modern, dark theme */
     /* Add a subtle border or outline for a "framed" look */
-    border-top: 5px solid #6366f1; /* Indigo */
+    /* border-top: 5px solid #ff0000;  Indigo */
     border-bottom: 5px solid #9333ea; /* Purple */
     overflow-y: scroll; /* Ensure scrollbar always visible if content overflows */
 }

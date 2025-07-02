@@ -1,4 +1,4 @@
-// players.js
+// playerList.js
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getFirestore, collection, query, getDocs, orderBy, limit } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
@@ -55,170 +55,101 @@ function hideMessage(elementId) {
     if (element) {
         element.classList.add('hidden');
         element.textContent = '';
-    } 
+    }
 }
+
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Firebase
     try {
-        if (!finalFirebaseConfig || !finalFirebaseConfig.projectId) {
-            throw new Error("Firebase configuration 'projectId' is missing. Cannot initialize Firebase.");
-        }
         const app = initializeApp(finalFirebaseConfig);
-        db = getFirestore(app);
         auth = getAuth(app);
-        console.log("Firebase initialized in players.js.");
+        db = getFirestore(app);
+        console.log("Firebase initialized in playerList.js");
     } catch (error) {
-        console.error("Error initializing Firebase in players.js:", error);
-        showMessage('playersErrorMessage', `Failed to initialize Firebase: ${error.message}. Please check console for details.`, 'error');
-        return;
+        console.error("Firebase initialization failed in playerList.js:", error);
+        showMessage('playersErrorMessage', `Firebase initialization error: ${error.message}`, 'error');
+        return; // Stop execution if Firebase fails to initialize
     }
 
-    // Authenticate user
+    // Authenticate user anonymously
     onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            console.log("Authenticated with Firebase UID:", user.uid);
-            await fetchAndRenderPlayers(); // Fetch and render players after auth
-        } else {
-            console.log("No user signed in. Attempting anonymous sign-in.");
+        if (!user) {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                    console.log("Signed in with custom token.");
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("Signed in anonymously.");
-                }
-                await fetchAndRenderPlayers(); // Fetch and render players after sign-in attempt
+                await signInAnonymously(auth);
+                console.log("Signed in anonymously for playerList.js.");
+                fetchAndRenderPlayers(); // Fetch after sign-in
             } catch (error) {
-                console.error("Firebase authentication failed in players.js:", error);
-                showMessage('playersErrorMessage', 'Authentication failed. Player data might not load. Check console for details.', 'error');
+                console.error("Error signing in anonymously for playerList.js:", error);
+                showMessage('playersErrorMessage', `Authentication error: ${error.message}`, 'error');
             }
+        } else {
+            console.log("Existing user detected for playerList.js:", user.uid);
+            fetchAndRenderPlayers(); // Fetch if already signed in
         }
     });
 
-    /**
-     * Calculates the current win/loss streak for a player based on their match history.
-     * The 'outcome' field in each match object directly reflects the outcome for the player whose history this is.
-     * @param {Array<Object>} matches - An array of match objects for the player, sorted by timestamp descending.
-     * @returns {string} The current streak (e.g., "3 Wins", "2 Losses", "No Streak").
-     */
-    function calculateCurrentStreak(matches) {
-        if (!matches || matches.length === 0) {
-            return "No Streak";
-        }
-
-        let streakCount = 0;
-        let streakType = null; // 'win' or 'loss'
-
-        // Matches are already sorted by timestamp descending, so process from most recent.
-        for (const match of matches) {
-            const currentMatchOutcome = match.outcome; // 'win' or 'loss' for this player
-
-            if (currentMatchOutcome !== 'win' && currentMatchOutcome !== 'loss') {
-                console.warn("Invalid outcome in match history, skipping:", match);
-                continue; 
-            }
-            
-            if (streakType === null) {
-                streakType = currentMatchOutcome;
-                streakCount = 1;
-            } else if (currentMatchOutcome === streakType) {
-                streakCount++;
-            } else {
-                // Streak broken, stop here
-                break; 
-            }
-        }
-
-        if (streakType === 'win') {
-            return `${streakCount} Win(s)`;
-        } else if (streakType === 'loss') {
-            return `${streakCount} Loss(es)`;
-        }
-        return "No Streak";
-    }
-
-
-    /**
-     * Fetches all player data and renders them as cards in a grid.
-     */
+    // Function to fetch and render players
     async function fetchAndRenderPlayers() {
         const playersGrid = document.getElementById('playersGrid');
         const playersLoadingMessage = document.getElementById('playersLoadingMessage');
-        const noPlayersMessage = document.getElementById('noPlayersMessage');
-        
-        // Clear previous content and show loading
-        playersGrid.innerHTML = '';
-        hideMessage('playersErrorMessage');
-        noPlayersMessage.classList.add('hidden');
-        playersLoadingMessage.classList.remove('hidden');
+        const playersErrorMessage = document.getElementById('playersErrorMessage');
 
-        if (!db) {
-            showMessage('playersErrorMessage', 'Firebase database not initialized. Cannot load players.', 'error');
-            playersLoadingMessage.classList.add('hidden');
+        if (!playersGrid || !playersLoadingMessage || !playersErrorMessage) {
+            console.error("playerList.js: Required DOM elements for player list not found.");
             return;
         }
 
-        try {
-            const playersRef = collection(db, PLAYERS_COLLECTION_PATH);
-            const querySnapshot = await getDocs(query(playersRef));
+        playersGrid.innerHTML = ''; // Clear existing cards
+        playersLoadingMessage.classList.remove('hidden');
+        hideMessage('playersErrorMessage');
 
-            const players = [];
+        try {
+            const playersCol = collection(db, PLAYERS_COLLECTION_PATH);
+            // Order by totalGamesPlayed descending for a general player list
+            const q = query(playersCol, orderBy('totalGamesPlayed', 'desc')); 
+            const querySnapshot = await getDocs(q);
+
+            playersLoadingMessage.classList.add('hidden'); // Hide loading message
+
             if (querySnapshot.empty) {
-                playersLoadingMessage.classList.add('hidden');
-                noPlayersMessage.classList.remove('hidden');
+                playersGrid.innerHTML = `<p class="col-span-full text-center text-gray-400">No players found. Add matches to see players here!</p>`;
                 return;
             }
 
-            for (const playerDoc of querySnapshot.docs) {
-                const playerData = playerDoc.data();
-                players.push(playerData);
+            querySnapshot.forEach(doc => {
+                const player = doc.data();
+                const playerIdForLink = encodeURIComponent(doc.id); 
 
-                // Fetch match history for streak calculation
-                const matchesRef = collection(playerDoc.ref, 'matches');
-                const matchesQuery = query(matchesRef, orderBy('timestamp', 'desc'), limit(100)); // Get recent matches for streak
-                const matchesSnapshot = await getDocs(matchesQuery);
-                
-                const playerMatches = [];
-                matchesSnapshot.forEach(matchDoc => {
-                    playerMatches.push(matchDoc.data());
-                });
-                playerData.matches = playerMatches; // Attach matches to player data
-            }
+                // --- ADD THIS CONSOLE.LOG ---
+                console.log(`Processing player: name=${player.name}, doc.id=${doc.id}, encodedId=${playerIdForLink}`);
+                // -----------------------------
 
-            playersLoadingMessage.classList.add('hidden');
-            
-            // Sort players alphabetically by name for consistent display
-            players.sort((a, b) => a.name.localeCompare(b.name));
+                const totalGames = player.totalGamesPlayed || 0;
+                let winRate = (player.overallWinRate !== undefined && player.overallWinRate !== null) ? player.overallWinRate.toFixed(1) : '0'; 
 
-            players.forEach(player => {
-                const totalWins = (player.wins1v1 || 0) + (player.wins2v2 || 0);
-                const totalLosses = (player.losses1v1 || 0) + (player.losses2v2 || 0);
-                const totalGames = totalWins + totalLosses;
-                const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(2) : 'N/A';
-                
-                const currentStreak = calculateCurrentStreak(player.matches); // Pass only matches, as outcome is player-centric
+                if (totalGames === 0) {
+                    winRate = 'N/A';
+                }
+
+                const currentStreak = player.currentStreak !== undefined ? `${player.currentStreak > 0 ? '+' : ''}${player.currentStreak}` : 'N/A';
 
                 const playerCard = `
-                    <div class="bg-gray-700 p-6 rounded-xl shadow-lg border border-gray-600 flex flex-col items-center text-center">
-                        <div class="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-3xl font-bold text-white mb-4 overflow-hidden">
-                            <!-- Placeholder for player image -->
-                            <img src="https://placehold.co/96x96/4299E1/FFFFFF?text=${player.name.charAt(0).toUpperCase()}" 
-                                 alt="${player.name}" 
-                                 class="w-full h-full object-cover">
+                    <div class="bg-gray-700 p-6 rounded-lg shadow-lg text-center transform hover:scale-102 transition duration-200 ease-in-out border border-gray-600">
+                        <div class="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden border-2 border-blue-400">
+                            <img src="${player.avatarUrl || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=default&backgroundColor=b6e3f4,c0aede,d1d4f9,ffeedc,f4d15b&size=64'}" alt="${player.name}" class="w-full h-full object-cover">
                         </div>
                         <h3 class="text-xl font-semibold text-blue-300 mb-2">${player.name}</h3>
                         <p class="text-gray-200 text-sm mb-1">
                             <strong class="font-medium">Total Games:</strong> ${totalGames}
                         </p>
                         <p class="text-gray-200 text-sm mb-1">
-                            <strong class="font-medium">Win Rate:</strong> ${winRate}%
+                            <strong class="font-medium">Win Rate:</strong> ${winRate}${winRate !== 'N/A' ? '%' : ''}
                         </p>
                         <p class="text-gray-200 text-sm mb-4">
                             <strong class="font-medium">Streak:</strong> ${currentStreak}
                         </p>
-                        <a href="playerProfile.html?playerName=${encodeURIComponent(player.name)}" 
+                        <a href="playerProfile.html?playerName=${playerIdForLink}" 
                            class="inline-block bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out transform hover:scale-105">
                             View Profile
                         </a>

@@ -12,7 +12,8 @@ import {
     writeBatch, 
     deleteDoc, 
     getDoc,
-    serverTimestamp // Ensure serverTimestamp is imported here
+    serverTimestamp, // Ensure serverTimestamp is imported here
+    orderBy
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
 // Import your local firebase-config.js
@@ -22,529 +23,660 @@ let db;
 let auth;
 let currentUserId = null;
 
+// --- ALL ELEMENT REFERENCES DECLARED HERE FOR GLOBAL ACCESS ---
+// Get elements for Player Inputs
+let player1Input;
+let player2Input;
+let player3Input;
+let player4Input;
+let matchDateInput; // <-- CORRECTLY DECLARED HERE
+
+// Get elements for Game Type selection
+let gameTypeRadios; 
+let team1PlayersContainer; 
+let team2PlayersContainer; 
+
+// Get elements for Winner Selection
+let winnerSelectionDiv; 
+let winnerPlayer1RadioDiv; 
+let winnerPlayer2RadioDiv; 
+let winnerTeam1RadioDiv; 
+let winnerTeam2RadioDiv; 
+
+// Get the actual radio buttons themselves for setting checked state
+let winnerPlayer1Radio; 
+let winnerPlayer2Radio; 
+let winnerTeam1Radio; 
+let winnerTeam2Radio; 
+
+let gameType1v1Radio; 
+let gameType2v2Radio; 
+
+let winnerPlayer1Label; 
+let winnerPlayer2Label; 
+let team1Player1Label; 
+let team1Player2Label; 
+let team2Player3Label; 
+let team2Player4Label; 
+
+let addMatchButton; 
+let leaderboardTableBody; 
+let matchErrorMessageDisplay; 
+
+// Elements for Clear All Data
+let clearAllDataButton; 
+let clearConfirmationMessage; 
+let confirmClearButton; 
+let cancelClearButton; 
+let clearDataMessage; 
+// --- END ALL ELEMENT REFERENCES DECLARED HERE ---
+
 // Determine the final firebaseConfig to use: Canvas-provided or local fallback
 let finalFirebaseConfig = {};
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'local-pool-tracker-app'; 
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'local-pool-tracker-app'; // Fallback ID for local testing
 
 try {
+    // Prefer Canvas-provided config if it's a valid non-empty string
     if (typeof __firebase_config === 'string' && __firebase_config.trim().length > 0) {
         finalFirebaseConfig = JSON.parse(__firebase_config);
         console.log("Using Canvas-provided Firebase config.");
     } else {
+        // Fallback to locally imported config
         finalFirebaseConfig = localFirebaseConfig;
         console.warn("Runtime variable '__firebase_config' is not valid or empty. Using local 'firebase-config.js'.");
-        if (finalFirebaseConfig.projectId === "YOUR_FIREBASE_PROJECT_ID") {
-            console.warn("Using placeholder Firebase Project ID from local config. Firestore operations will not connect to a real project unless configured with your actual Firebase credentials in firebase-config.js.");
-        }
     }
-} catch (e) {
-    console.error("Error parsing __firebase_config or loading local config. Using local fallback. Details:", e);
-    finalFirebaseConfig = localFirebaseConfig;
-    if (finalFirebaseConfig.projectId === "YOUR_FIREBASE_PROJECT_ID") {
-        console.warn("Using placeholder Firebase Project ID from local config due to error. Firestore operations will not connect to a real project unless configured with your actual Firebase credentials in firebase-config.js.");
-    }
+
+    // Initialize Firebase
+    const app = initializeApp(finalFirebaseConfig);
+    db = getFirestore(app);
+    auth = getAuth(app);
+    console.log("Firebase initialized.");
+
+} catch (error) {
+    console.error("Failed to initialize Firebase:", error);
+    alert("Error initializing Firebase. Check console for details.");
 }
 
-
-// Helper function to show messages (errors, success, loading)
-function showMessage(elementId, message, type = 'info') {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = message;
-        element.className = `mt-2 p-2 rounded text-center text-sm ${
-            type === 'error' ? 'bg-red-700 text-white' : 
-            type === 'success' ? 'bg-green-700 text-white' : 
-            'bg-blue-700 text-white'
-        }`;
-        element.classList.remove('hidden');
-    }
-}
-
-// Function to hide messages
-function hideMessage(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.classList.add('hidden');
-        element.textContent = '';
-    } 
-}
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Initialize Firebase
-    try {
-        if (!finalFirebaseConfig || !finalFirebaseConfig.projectId) {
-            throw new Error("Firebase configuration 'projectId' is missing. Cannot initialize Firebase.");
-        }
-        const app = initializeApp(finalFirebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-        console.log("Firebase initialized.");
-    } catch (error) {
-        console.error("Error initializing Firebase:", error);
-        showMessage('leaderboardErrorMessage', `Failed to initialize Firebase: ${error.message}. Please check console for details.`, 'error');
-        return;
-    }
+    console.log("DOMContentLoaded fired.");
 
     // Firestore collection path for public data (leaderboard)
     const PLAYERS_COLLECTION_PATH = `artifacts/${appId}/public/data/players`;
+    const MATCHES_COLLECTION_PATH = `artifacts/${appId}/public/data/matches`; // Define matches collection path
     console.log("Firestore Players Collection Path:", PLAYERS_COLLECTION_PATH);
-
 
     // Authenticate user
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
-            console.log("Authenticated with Firebase UID:", currentUserId);
-            hideMessage('authMessage'); 
-            await fetchAndRenderLeaderboard(); // Fetch and render leaderboard after auth
+            console.log("User signed in anonymously with UID:", currentUserId);
+            // Fetch and render leaderboard and match history after authentication
+            await fetchAndRenderLeaderboard();
         } else {
-            console.log("No user signed in. Attempting anonymous sign-in.");
+            // Sign in anonymously if no user is authenticated
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                    console.log("Signed in with custom token.");
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("Signed in anonymously.");
-                }
+                await signInAnonymously(auth);
+                console.log("Signed in anonymously.");
             } catch (error) {
-                console.error("Firebase authentication failed:", error);
-                showMessage('leaderboardErrorMessage', 'Authentication failed. Leaderboard might not update. Check console for details.', 'error');
+                console.error("Error signing in anonymously:", error);
+                showMessage('leaderboardErrorMessage', `Authentication error: ${error.message}`, 'error');
             }
         }
     });
 
+    // --- ASSIGNMENTS TO ELEMENT REFERENCES (NO 'const' or 'let' here for already declared vars) ---
+
     // Get elements for Game Type selection
-    const gameTypeRadios = document.querySelectorAll('input[name="gameType"]');
-    const team1PlayersContainer = document.getElementById('team1PlayersContainer'); 
-    const team2PlayersContainer = document.getElementById('team2PlayersContainer'); 
+    gameTypeRadios = document.querySelectorAll('input[name="gameType"]');
+    team1PlayersContainer = document.getElementById('team1PlayersContainer'); 
+    team2PlayersContainer = document.getElementById('team2PlayersContainer'); 
 
     // Get elements for Player Inputs
-    const player1Input = document.getElementById('player1'); 
-    const player2Input = document.getElementById('player2'); 
-    const player3Input = document.getElementById('player3'); 
-    const player4Input = document.getElementById('player4'); 
+    player1Input = document.getElementById('player1'); 
+    player2Input = document.getElementById('player2'); 
+    player3Input = document.getElementById('player3'); 
+    player4Input = document.getElementById('player4'); 
+    matchDateInput = document.getElementById('matchDate'); // <-- CORRECTLY ASSIGNED HERE
 
     // Get elements for Winner Selection
-    const winnerSelectionDiv = document.getElementById('winnerSelection');
-    const winnerPlayer1RadioDiv = document.getElementById('winner_player1_radio_div'); 
-    const winnerPlayer2RadioDiv = document.getElementById('winner_player2_radio_div'); 
-    const winnerTeam1RadioDiv = document.getElementById('winner_team1_radio_div'); 
-    const winnerTeam2RadioDiv = document.getElementById('winner_team2_radio_div'); 
+    winnerSelectionDiv = document.getElementById('winnerSelection');
+    winnerPlayer1RadioDiv = document.getElementById('winner_player1_radio_div'); 
+    winnerPlayer2RadioDiv = document.getElementById('winner_player2_radio_div'); 
+    winnerTeam1RadioDiv = document.getElementById('winner_team1_radio_div'); 
+    winnerTeam2RadioDiv = document.getElementById('winner_team2_radio_div'); 
 
     // Get the actual radio buttons themselves for setting checked state
-    const winnerPlayer1Radio = document.getElementById('winner_player1'); 
-    const winnerPlayer2Radio = document.getElementById('winner_player2'); 
-    const winnerTeam1Radio = document.getElementById('winner_team1'); 
-    const winnerTeam2Radio = document.getElementById('winner_team2'); 
+    winnerPlayer1Radio = document.querySelector('#winner_player1_radio_div input'); 
+    winnerPlayer2Radio = document.querySelector('#winner_player2_radio_div input'); 
+    winnerTeam1Radio = document.querySelector('#winner_team1_radio_div input'); 
+    winnerTeam2Radio = document.querySelector('#winner_team2_radio_div input'); 
 
-    const gameType1v1Radio = document.getElementById('gameType1v1'); // Assuming 'gameType1v1' is the ID of the radio input
-    const gameType2v2Radio = document.getElementById('gameType2v2'); // Assuming 'gameType2v2' is the ID of the radio input
+    // Assuming these IDs exist in your HTML from the radio inputs directly,
+    // if not, adjust to select by name or parent div
+    // For example: document.querySelector('input[name="gameType"][value="1v1"]');
+    gameType1v1Radio = document.querySelector('input[name="gameType"][value="1v1"]'); 
+    gameType2v2Radio = document.querySelector('input[name="gameType"][value="2v2"]'); 
 
-    const winnerPlayer1Label = document.getElementById('winner_player1_label'); 
-    const winnerPlayer2Label = document.getElementById('winner_player2_label'); 
-    const team1Player1Label = document.getElementById('team1_player1_label'); 
-    const team1Player2Label = document.getElementById('team1_player2_label'); 
-    const team2Player3Label = document.getElementById('team2_player3_label'); 
-    const team2Player4Label = document.getElementById('team2_player4_label'); 
+    winnerPlayer1Label = document.getElementById('winner_player1_label'); 
+    winnerPlayer2Label = document.getElementById('winner_player2_label'); 
+    team1Player1Label = document.getElementById('team1_player1_label'); 
+    team1Player2Label = document.getElementById('team1_player2_label'); 
+    team2Player3Label = document.getElementById('team2_player3_label'); 
+    team2Player4Label = document.getElementById('team2_player4_label'); 
 
-    const addMatchButton = document.getElementById('addMatchButton');
-    const leaderboardTableBody = document.getElementById('leaderboardTableBody');
-    const matchErrorMessageDisplay = document.getElementById('matchErrorMessage');
+    addMatchButton = document.getElementById('addMatchButton'); 
+    leaderboardTableBody = document.getElementById('leaderboardTableBody'); 
+    matchErrorMessageDisplay = document.getElementById('matchErrorMessage'); 
 
     // Elements for Clear All Data
-    const clearAllDataButton = document.getElementById('clearAllDataButton');
-    const clearConfirmationMessage = document.getElementById('clearConfirmationMessage');
-    const confirmClearButton = document.getElementById('confirmClearButton');
-    const cancelClearButton = document.getElementById('cancelClearButton');
-    const clearDataMessage = document.getElementById('clearDataMessage');
-
+    clearAllDataButton = document.getElementById('clearAllDataButton'); 
+    clearConfirmationMessage = document.getElementById('clearConfirmationMessage'); 
+    confirmClearButton = document.getElementById('confirmClearButton'); 
+    cancelClearButton = document.getElementById('cancelClearButton'); 
+    clearDataMessage = document.getElementById('clearDataMessage'); 
+    // --- END ASSIGNMENTS ---
 
     /**
-     * Updates the visibility of player input fields and winner selection
-     * based on the selected game type (1v1 or 2v2).
+     * Shows a message in a designated error/info display area.
+     * @param {string} elementId The ID of the HTML element to display the message.
+     * @param {string} message The message to display.
+     * @param {'error'|'success'|'info'} type The type of message to determine styling.
      */
+    function showMessage(elementId, message, type) {
+        const displayElement = document.getElementById(elementId);
+        if (displayElement) {
+            displayElement.textContent = message;
+            displayElement.classList.remove('hidden', 'bg-red-800', 'bg-green-800', 'bg-blue-800');
+            if (type === 'error') {
+                displayElement.classList.add('bg-red-800');
+            } else if (type === 'success') {
+                displayElement.classList.add('bg-green-800');
+            } else { // info
+                displayElement.classList.add('bg-blue-800');
+            }
+        }
+    }
+
+    /**
+     * Hides a message in a designated error/info display area.
+     * @param {string} elementId The ID of the HTML element to hide the message.
+     */
+    function hideMessage(elementId) {
+        const displayElement = document.getElementById(elementId);
+        if (displayElement) {
+            displayElement.classList.add('hidden');
+            displayElement.textContent = ''; // Clear text when hidden
+        }
+    }
+
+    // Function to update the display based on game type selection
     function updateGameTypeDisplay() {
         const selectedGameType = document.querySelector('input[name="gameType"]:checked').value;
-        hideMessage('matchErrorMessage'); 
 
         if (selectedGameType === '1v1') {
-            team1PlayersContainer.classList.remove('hidden'); 
-            team2PlayersContainer.classList.add('hidden');   
+            team1PlayersContainer.classList.remove('hidden');
+            team2PlayersContainer.classList.add('hidden');
+            player3Input.value = ''; // Clear 2v2 player inputs
+            player4Input.value = '';
 
+            // Adjust winner selection for 1v1
             winnerPlayer1RadioDiv.classList.remove('hidden');
             winnerPlayer2RadioDiv.classList.remove('hidden');
             winnerTeam1RadioDiv.classList.add('hidden');
             winnerTeam2RadioDiv.classList.add('hidden');
-
-            // Set the default winner radio button for 1v1
-            if (winnerPlayer1Radio) winnerPlayer1Radio.checked = true;
-            if (winnerPlayer2Radio) winnerPlayer2Radio.checked = false;
-
         } else { // 2v2
-            team1PlayersContainer.classList.remove('hidden'); 
-            team2PlayersContainer.classList.remove('hidden'); 
+            team1PlayersContainer.classList.remove('hidden');
+            team2PlayersContainer.classList.remove('hidden');
 
+            // Adjust winner selection for 2v2
             winnerPlayer1RadioDiv.classList.add('hidden');
             winnerPlayer2RadioDiv.classList.add('hidden');
             winnerTeam1RadioDiv.classList.remove('hidden');
             winnerTeam2RadioDiv.classList.remove('hidden');
-
-            // Set the default winner radio button for 2v2
-            if (winnerTeam1Radio) winnerTeam1Radio.checked = true;
-            if (winnerTeam2Radio) winnerTeam2Radio.checked = false;
         }
-        updateWinnerLabels(); 
+        updateWinnerLabels(); // Update labels immediately after type change
     }
 
-    /**
-     * Updates the winner selection labels with current player names.
-     */
+    // Function to update winner labels dynamically
     function updateWinnerLabels() {
-        winnerPlayer1Label.textContent = player1Input.value.trim() || 'Player 1';
-        winnerPlayer2Label.textContent = player2Input.value.trim() || 'Player 2';
-        
-        team1Player1Label.textContent = player1Input.value.trim() || 'Player 1';
-        team1Player2Label.textContent = player2Input.value.trim() || 'Player 2'; 
-        team2Player3Label.textContent = player3Input.value.trim() || 'Player 3';
-        team2Player4Label.textContent = player4Input.value.trim() || 'Player 4';
+        winnerPlayer1Label.textContent = player1Input.value || 'Player 1';
+        winnerPlayer2Label.textContent = player2Input.value || 'Player 2';
+        team1Player1Label.textContent = player1Input.value || 'Player 1';
+        team1Player2Label.textContent = player2Input.value || 'Player 2';
+        team2Player3Label.textContent = player3Input.value || 'Player 3';
+        team2Player4Label.textContent = player4Input.value || 'Player 4';
+
+        // Clear winner selection when players change
+        winnerPlayer1Radio.checked = false;
+        winnerPlayer2Radio.checked = false;
+        winnerTeam1Radio.checked = false;
+        winnerTeam2Radio.checked = false;
     }
 
-    /**
-     * Clears all input fields in the "Add Match" form.
-     * This function is now defined within the DOMContentLoaded scope.
-     */
-    function clearMatchInputs() {
-        player1Input.value = '';
-        player2Input.value = '';
-        player3Input.value = '';
-        player4Input.value = '';
-
-        // Reset winner selection radio buttons to default 1v1 state
-        if (winnerPlayer1Radio) winnerPlayer1Radio.checked = true;
-        if (winnerPlayer2Radio) winnerPlayer2Radio.checked = false;
-        if (winnerTeam1Radio) winnerTeam1Radio.checked = false;
-        if (winnerTeam2Radio) winnerTeam2Radio.checked = false;
-
-        // Reset game type selection back to 1v1
-        if (gameType1v1Radio) gameType1v1Radio.checked = true;
-        if (gameType2v2Radio) gameType2v2Radio.checked = false;
-
-        // Call display update functions to ensure UI reflects the reset state
-        updateWinnerLabels(); 
-        updateGameTypeDisplay(); 
-        
-        hideMessage('matchErrorMessage'); // Also hide any lingering match messages
+    // Helper function to safely calculate win rate, returning a number (0 if total games is 0)
+    function calculateWinRate(wins, losses) {
+        if (wins === 0 && losses === 0) {
+            return 0;
+        }
+        return (wins / (wins + losses)) * 100;
     }
 
-    /**
-     * Handles adding a match to Firestore and updating leaderboard.
-     */
+    // Helper function for formatting dates from Firestore Timestamps
+    function formatDate(timestamp) {
+        if (!timestamp) return 'N/A';
+        // If it's a Firestore Timestamp object
+        if (timestamp.toDate) {
+            const date = timestamp.toDate();
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+        // If it's a Date object already (less likely from Firestore direct fetch, but good to handle)
+        if (timestamp instanceof Date) {
+            return timestamp.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+        return 'N/A'; // Fallback for unexpected format
+    }
+
+
+    // Main function to handle adding a match
+    // Inside leaderboard.js
+
     async function handleAddMatch() {
-        hideMessage('matchErrorMessage'); 
-        showMessage('matchErrorMessage', 'Adding match...', 'info');
-
-        if (!db || !auth.currentUser) {
-            showMessage('matchErrorMessage', 'Error: Firebase not ready or not authenticated. Please wait or refresh the page.', 'error');
-            return;
-        }
-        if (!currentUserId) {
-            showMessage('matchErrorMessage', 'Error: User ID not available. Please refresh the page.', 'error');
-            return;
-        }
+        hideMessage('matchErrorMessage'); // Hide any previous error messages
 
         const gameType = document.querySelector('input[name="gameType"]:checked').value;
-        let winnerPlayerNames = [];
-        let loserPlayerNames = [];
+        const player1Name = player1Input.value.trim();
+        const player2Name = player2Input.value.trim();
+        const player3Name = player3Input.value.trim(); // Only for 2v2
+        const player4Name = player4Input.value.trim(); // Only for 2v2
+        const matchDate = matchDateInput.value;
 
-        try {
-            if (gameType === '1v1') {
-                const p1 = player1Input.value.trim();
-                const p2 = player2Input.value.trim();
+        let winnerName, loserName;
+        let team1Players = [];
+        let team2Players = [];
+        let winningTeam, losingTeam;
 
-                if (!p1 || !p2) {
-                    showMessage('matchErrorMessage', 'Please enter names for both Player 1 and Player 2.', 'error');
-                    return;
-                }
-                if (p1 === p2) {
-                    showMessage('matchErrorMessage', 'Player names must be different in 1v1 match.', 'error');
-                    return;
-                }
-                
-                const selectedWinnerValue = document.querySelector('input[name="winner"]:checked')?.value;
-                if (!selectedWinnerValue) {
-                    showMessage('matchErrorMessage', 'Please select a winner.', 'error');
-                    return;
-                }
+        // Basic validation
+        if (!player1Name || !player2Name || !matchDate) {
+            showMessage('matchErrorMessage', 'Player 1, Player 2, and Match Date are required.', 'error');
+            return;
+        }
 
-                if (selectedWinnerValue === 'player1') { 
-                    winnerPlayerNames.push(p1);
-                    loserPlayerNames.push(p2);
-                } else { 
-                    winnerPlayerNames.push(p2);
-                    loserPlayerNames.push(p1);
-                }
-
-            } else { // 2v2
-                const p1 = player1Input.value.trim();
-                const p2 = player2Input.value.trim();
-                const p3 = player3Input.value.trim();
-                const p4 = player4Input.value.trim();
-
-                if (!p1 || !p2 || !p3 || !p4) {
-                    showMessage('matchErrorMessage', 'Please enter names for all four players.', 'error');
-                    return;
-                }
-                const allPlayers = [p1, p2, p3, p4];
-                const uniquePlayers = new Set(allPlayers);
-                if (uniquePlayers.size !== 4) {
-                    showMessage('matchErrorMessage', 'All four player names must be unique for a 2v2 match.', 'error');
-                    return;
-                }
-                
-                const selectedWinnerValue = document.querySelector('input[name="winner"]:checked')?.value;
-                if (!selectedWinnerValue) {
-                    showMessage('matchErrorMessage', 'Please select a winning team.', 'error');
-                    return;
-                }
-
-                if (selectedWinnerValue === 'team1') {
-                    winnerPlayerNames.push(p1, p2); 
-                    loserPlayerNames.push(p3, p4);   
-                } else { // team2
-                    winnerPlayerNames.push(p3, p4);   
-                    loserPlayerNames.push(p1, p2); 
-                }
-            }
-
-            const batch = writeBatch(db);
-
-            // Generate a unique ID for this match that will be used for all player's match history entries
-            const matchId = doc(collection(db, 'dummyCollectionForIDGeneration')).id; 
-
-            // Function to ensure player document exists and update stats and match history
-            // This function now takes the batch and matchId as arguments
-            async function updatePlayerStatsInBatch(playerName, gameType, outcome, opponents = [], teammates = []) {
-                const playerDocRef = doc(db, PLAYERS_COLLECTION_PATH, playerName);
-                
-                // Update player's general stats (wins, losses, games played)
-                const updates = {
-                    name: playerName, // Ensure name is always set
-                    [`gamesPlayed${gameType.replace('v', '')}`]: increment(1),
-                    [`${outcome}${gameType.replace('v', '')}`]: increment(1)
-                };
-                batch.set(playerDocRef, updates, { merge: true }); 
-
-                // Record the match in the player's match history subcollection
-                const playerMatchRecord = {
-                    gameId: matchId, // Unique ID for this match
-                    gameType: gameType,
-                    outcome: outcome, 
-                    opponents: opponents, 
-                    teamMates: teammates, 
-                    timestamp: serverTimestamp() // Correctly using serverTimestamp()
-                };
-                batch.set(doc(playerDocRef, 'matches', matchId), playerMatchRecord); 
-
-                // Update rivalries and partnerships
-                if (gameType === '1v1') {
-                    const rivalryRef = doc(playerDocRef, 'rivalries', opponents[0]);
-                    batch.set(rivalryRef, {
-                        wins: increment(outcome === 'win' ? 1 : 0),
-                        losses: increment(outcome === 'loss' ? 1 : 0)
-                    }, { merge: true });
-                } else if (gameType === '2v2') {
-                    // Partnerships
-                    for (const teammate of teammates) { // Iterate over actual teammates, not all winning/losing team members
-                        const partnershipRef = doc(playerDocRef, 'partnerships', teammate);
-                        batch.set(partnershipRef, {
-                            wins: increment(outcome === 'win' ? 1 : 0),
-                            losses: increment(outcome === 'loss' ? 1 : 0)
-                        }, { merge: true });
-                    }
-                    // Rivalries
-                    for (const opponent of opponents) {
-                        const rivalryRef = doc(playerDocRef, 'rivalries', opponent);
-                        batch.set(rivalryRef, {
-                            wins: increment(outcome === 'win' ? 1 : 0),
-                            losses: increment(outcome === 'loss' ? 1 : 0)
-                        }, { merge: true });
-                    }
-                }
-            }
-
-            // Prepare batch updates for all players involved
-            if (gameType === '1v1') {
-                await updatePlayerStatsInBatch(winnerPlayerNames[0], '1v1', 'win', loserPlayerNames); // Opponent is the loser
-                await updatePlayerStatsInBatch(loserPlayerNames[0], '1v1', 'loss', winnerPlayerNames); // Opponent is the winner
-            } else { // 2v2
-                // For winners
-                for (const winnerName of winnerPlayerNames) {
-                    const teammates = winnerPlayerNames.filter(p => p !== winnerName);
-                    await updatePlayerStatsInBatch(winnerName, '2v2', 'win', loserPlayerNames, teammates);
-                }
-                // For losers
-                for (const loserName of loserPlayerNames) {
-                    const teammates = loserPlayerNames.filter(p => p !== loserName);
-                    await updatePlayerStatsInBatch(loserName, '2v2', 'loss', winnerPlayerNames, teammates);
-                }
+        if (gameType === '1v1') {
+            // Now, we query for name="winner" but specifically for the visible 1v1 radios
+            // This is important because the 2v2 radios also have name="winner"
+            // We'll rely on the 'value' to differentiate, assuming the hidden ones won't be checked
+            const selectedWinnerRadio = document.querySelector('input[name="winner"]:checked');
+            
+            if (!selectedWinnerRadio) {
+                showMessage('matchErrorMessage', 'Please select a winner.', 'error');
+                return;
             }
             
+            // Ensure the selected winner value corresponds to a 1v1 player
+            if (selectedWinnerRadio.value !== 'player1' && selectedWinnerRadio.value !== 'player2') {
+                showMessage('matchErrorMessage', 'Invalid winner selection for 1v1 game type. Please re-select.', 'error');
+                return;
+            }
+
+            if (player1Name === player2Name) {
+                showMessage('matchErrorMessage', 'Player 1 and Player 2 cannot be the same in 1v1.', 'error');
+                return;
+            }
+            winnerName = selectedWinnerRadio.value === 'player1' ? player1Name : player2Name;
+            loserName = selectedWinnerRadio.value === 'player1' ? player2Name : player1Name;
+
+        } else { // 2v2
+            if (!player3Name || !player4Name) {
+                showMessage('matchErrorMessage', 'All four player names are required for 2v2.', 'error');
+                return;
+            }
+            const allPlayers = [player1Name, player2Name, player3Name, player4Name];
+            const uniquePlayers = new Set(allPlayers);
+            if (uniquePlayers.size !== 4) {
+                showMessage('matchErrorMessage', 'All four players must be unique for 2v2.', 'error');
+                return;
+            }
+
+            // Again, query for name="winner"
+            const selectedWinnerRadio = document.querySelector('input[name="winner"]:checked');
+            
+            if (!selectedWinnerRadio) {
+                showMessage('matchErrorMessage', 'Please select a winning team.', 'error');
+                return;
+            }
+
+            // Ensure the selected winner value corresponds to a 2v2 team
+            if (selectedWinnerRadio.value !== 'team1' && selectedWinnerRadio.value !== 'team2') {
+                showMessage('matchErrorMessage', 'Invalid winner selection for 2v2 game type. Please re-select.', 'error');
+                return;
+            }
+
+            team1Players = [player1Name, player2Name];
+            team2Players = [player3Name, player4Name];
+
+            if (selectedWinnerRadio.value === 'team1') {
+                winningTeam = team1Players;
+                losingTeam = team2Players;
+            } else {
+                winningTeam = team2Players;
+                losingTeam = team1Players;
+            }
+        }
+
+        try {
+            const batch = writeBatch(db);
+            const playersToUpdate = new Set();
+            const matchId = doc(collection(db, MATCHES_COLLECTION_PATH)).id; // Generate a new match ID
+
+            let matchData = {
+                date: matchDate,
+                gameType: gameType,
+                timestamp: serverTimestamp(),
+                players: [], // To store all players involved for easy lookup
+                winner: null,
+                loser: null,
+                winningTeam: [],
+                losingTeam: []
+            };
+
+            if (gameType === '1v1') {
+                playersToUpdate.add(winnerName);
+                playersToUpdate.add(loserName);
+                matchData.winner = winnerName;
+                matchData.loser = loserName;
+                matchData.players = [winnerName, loserName];
+            } else { // 2v2
+                winningTeam.forEach(p => playersToUpdate.add(p));
+                losingTeam.forEach(p => playersToUpdate.add(p));
+                matchData.winningTeam = winningTeam;
+                matchData.losingTeam = losingTeam;
+                matchData.players = [...winningTeam, ...losingTeam];
+            }
+
+            // Set the match document
+            batch.set(doc(db, MATCHES_COLLECTION_PATH, matchId), matchData);
+
+            // Fetch current data for all involved players to calculate new stats
+            const playersData = new Map();
+            for (const playerName of playersToUpdate) {
+                const playerRef = doc(db, PLAYERS_COLLECTION_PATH, playerName);
+                const playerDoc = await getDoc(playerRef);
+                if (playerDoc.exists()) {
+                    playersData.set(playerName, playerDoc.data());
+                } else {
+                    // Initialize new player if they don't exist
+                    playersData.set(playerName, { 
+                        name: playerName,
+                        wins1v1: 0, losses1v1: 0, games1v1: 0, winRate1v1: 0,
+                        wins2v2: 0, losses2v2: 0, games2v2: 0, winRate2v2: 0,
+                        totalWins: 0, totalLosses: 0, totalGamesPlayed: 0, overallWinRate: 0,
+                        currentStreak: 0, // Initialize streak
+                        avatarUrl: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(playerName)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffeedc,f4d15b&size=64`
+                    });
+                    // Also add a set call for new players in the batch
+                    batch.set(playerRef, playersData.get(playerName));
+                }
+            }
+
+            // Update stats for each player
+            for (const playerName of playersToUpdate) {
+                const playerRef = doc(db, PLAYERS_COLLECTION_PATH, playerName);
+                const currentData = playersData.get(playerName);
+
+                let newWins1v1 = currentData.wins1v1;
+                let newLosses1v1 = currentData.losses1v1;
+                let newWins2v2 = currentData.wins2v2;
+                let newLosses2v2 = currentData.losses2v2;
+                let newCurrentStreak = currentData.currentStreak;
+
+                if (gameType === '1v1') {
+                    if (playerName === winnerName) {
+                        newWins1v1++;
+                        newCurrentStreak = (newCurrentStreak > 0 ? newCurrentStreak : 0) + 1;
+                    } else { // Loser
+                        newLosses1v1++;
+                        newCurrentStreak = (newCurrentStreak < 0 ? newCurrentStreak : 0) - 1;
+                    }
+                } else { // 2v2
+                    if (winningTeam.includes(playerName)) {
+                        newWins2v2++;
+                        newCurrentStreak = (newCurrentStreak > 0 ? newCurrentStreak : 0) + 1;
+                    } else { // Losing team
+                        newLosses2v2++;
+                        newCurrentStreak = (newCurrentStreak < 0 ? newCurrentStreak : 0) - 1;
+                    }
+                }
+
+                // Calculate derived stats
+                const newGames1v1 = newWins1v1 + newLosses1v1;
+                const newWinRate1v1 = calculateWinRate(newWins1v1, newLosses1v1);
+
+                const newGames2v2 = newWins2v2 + newLosses2v2;
+                const newWinRate2v2 = calculateWinRate(newWins2v2, newLosses2v2);
+
+                const newTotalWins = newWins1v1 + newWins2v2;
+                const newTotalLosses = newLosses1v1 + newLosses2v2;
+                const newTotalGamesPlayed = newTotalWins + newTotalLosses;
+                const newOverallWinRate = calculateWinRate(newTotalWins, newTotalLosses);
+
+                batch.update(playerRef, {
+                    wins1v1: newWins1v1,
+                    losses1v1: newLosses1v1,
+                    games1v1: newGames1v1,
+                    winRate1v1: newWinRate1v1,
+                    wins2v2: newWins2v2,
+                    losses2v2: newLosses2v2,
+                    games2v2: newGames2v2,
+                    winRate2v2: newWinRate2v2,
+                    totalWins: newTotalWins,
+                    totalLosses: newTotalLosses,
+                    totalGamesPlayed: newTotalGamesPlayed,
+                    overallWinRate: newOverallWinRate,
+                    currentStreak: newCurrentStreak,
+                    lastPlayed: serverTimestamp()
+                });
+            }
+
             await batch.commit();
-            showMessage('matchErrorMessage', 'Match added successfully!', 'success');
+            showMessage('matchErrorMessage', 'Match added successfully and player stats updated!', 'success');
 
-            // Clear inputs and refresh UI
-            clearMatchInputs(); // Call the now accessible clearMatchInputs
-            await fetchAndRenderLeaderboard(); 
+            // Clear form and re-render leaderboard
+            player1Input.value = '';
+            player2Input.value = '';
+            player3Input.value = '';
+            player4Input.value = '';
+            matchDateInput.value = '';
+            
+            // This is crucial: Uncheck all radio buttons after a successful submission
+            // Since all now share the 'name="winner"', we can select all and uncheck.
+            document.querySelectorAll('input[name="winner"]').forEach(radio => {
+                radio.checked = false;
+            });
 
+            updateWinnerLabels(); // Clear labels after clearing inputs
+            await fetchAndRenderLeaderboard(); // Refresh leaderboard
         } catch (error) {
-            console.error("Error adding match:", error);
+            console.error("Error adding match or updating player stats:", error);
             showMessage('matchErrorMessage', `Error adding match: ${error.message}`, 'error');
         }
     }
 
-    /**
-     * Initiates the clear all data confirmation flow.
-     */
-    function initiateClearAllData() {
-        console.log("initiateClearAllData called. Hiding clearAllDataButton, showing clearConfirmationMessage.");
-        hideMessage('clearDataMessage'); // Hide any previous clear messages
-        clearConfirmationMessage.classList.remove('hidden'); // Show the confirmation prompt
-        clearAllDataButton.classList.add('hidden'); // Temporarily hide the main clear button
-    }
-
-    /**
-     * Executes the deletion of all player data from Firestore.
-     */
-    async function clearAllDataConfirmed() {
-        console.log("clearAllDataConfirmed called. Hiding clearConfirmationMessage, showing clearDataMessage.");
-        hideMessage('clearConfirmationMessage'); // Hide confirmation prompt
-        showMessage('clearDataMessage', 'Clearing all data...', 'info');
-        clearAllDataButton.classList.remove('hidden'); // Show main clear button again
-
-        if (!db || !auth.currentUser) {
-            showMessage('clearDataMessage', 'Error: Firebase not ready or not authenticated. Cannot clear data.', 'error');
-            return;
-        }
-
-        try {
-            const playersRef = collection(db, PLAYERS_COLLECTION_PATH);
-            const querySnapshot = await getDocs(query(playersRef));
-            
-            if (querySnapshot.empty) {
-                showMessage('clearDataMessage', 'No player data to clear.', 'info');
-                await fetchAndRenderLeaderboard(); // Ensure leaderboard is updated to show empty state
-                return;
-            }
-
-            // Batch delete main player documents and their subcollections
-            const deleteBatch = writeBatch(db);
-            for (const playerDoc of querySnapshot.docs) {
-                deleteBatch.delete(playerDoc.ref); // Delete main player document
-                
-                // Delete all documents in the 'matches' subcollection for this player
-                const matchesSnapshot = await getDocs(collection(playerDoc.ref, 'matches'));
-                matchesSnapshot.docs.forEach(matchDoc => {
-                    deleteBatch.delete(matchDoc.ref);
-                });
-            }
-
-            await deleteBatch.commit();
-            showMessage('clearDataMessage', 'All player data cleared successfully!', 'success');
-            await fetchAndRenderLeaderboard(); // Refresh leaderboard to show empty state
-        } catch (error) {
-            console.error("Error clearing all data:", error);
-            showMessage('clearDataMessage', `Error clearing data: ${error.message}`, 'error');
-        }
-    }
-
-    /**
-     * Cancels the clear all data operation.
-     */
-    function cancelClearAllData() {
-        console.log("cancelClearAllData called. Hiding confirmation messages, showing clearAllDataButton.");
-        hideMessage('clearConfirmationMessage'); // Hide confirmation prompt
-        hideMessage('clearDataMessage'); // Hide any messages related to clear process
-        clearAllDataButton.classList.remove('hidden'); // Show the main clear button
-    }
-
-
-    /**
-     * Fetches player data from Firestore and renders the leaderboard table.
-     */
+    // Function to fetch and render leaderboard
     async function fetchAndRenderLeaderboard() {
-        showMessage('leaderboardErrorMessage', 'Loading leaderboard...', 'info');
         try {
-            if (!db) {
-                showMessage('leaderboardErrorMessage', 'Firebase database not initialized. Cannot load leaderboard.', 'error');
-                return;
-            }
-            const playersRef = collection(db, PLAYERS_COLLECTION_PATH);
-            const q = query(playersRef);
+            const playersCol = collection(db, PLAYERS_COLLECTION_PATH);
+            const q = query(
+                playersCol,
+                orderBy('overallWinRate', 'desc'),
+                orderBy('totalGamesPlayed', 'desc')
+            );
+
             const querySnapshot = await getDocs(q);
-
             const players = [];
-            querySnapshot.forEach((doc) => {
-                players.push(doc.data());
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                players.push({
+                    name: data.name,
+                    avatarUrl: data.avatarUrl || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(data.name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffeedc,f4d15b&size=64`,
+                    wins1v1: data.wins1v1 || 0,
+                    losses1v1: data.losses1v1 || 0,
+                    games1v1: data.games1v1 || 0,
+                    wins2v2: data.wins2v2 || 0,
+                    losses2v2: data.losses2v2 || 0,
+                    games2v2: data.games2v2 || 0,
+                    totalWins: data.totalWins || 0,
+                    totalLosses: data.totalLosses || 0,
+                    totalGamesPlayed: data.totalGamesPlayed || 0,
+                    overallWinRate: data.overallWinRate || 0,
+                    currentStreak: data.currentStreak || 0,
+                    lastPlayed: data.lastPlayed
+                });
             });
 
-            // Sort players: primarily by overall win rate (desc), then total wins (desc)
-            players.sort((a, b) => {
-                const aTotalWins = (a.wins1v1 || 0) + (a.wins2v2 || 0);
-                const aTotalLosses = (a.losses1v1 || 0) + (a.losses2v2 || 0);
-                const aTotalGames = aTotalWins + aTotalLosses;
-                const aWinRate = aTotalGames > 0 ? (aTotalWins / aTotalGames) : 0;
-
-                const bTotalWins = (b.wins1v1 || 0) + (b.wins2v2 || 0);
-                const bTotalLosses = (b.losses1v1 || 0) + (b.losses2v2 || 0);
-                const bTotalGames = bTotalWins + bTotalLosses;
-                const bWinRate = bTotalGames > 0 ? (bTotalWins / bTotalGames) : 0;
-
-                if (bWinRate !== aWinRate) {
-                    return bWinRate - aWinRate; // Sort by win rate descending
-                }
-                return bTotalWins - aTotalWins; // Then by total wins descending
-            });
-
-            leaderboardTableBody.innerHTML = ''; // Clear existing rows
+            const leaderboardBody = document.getElementById('leaderboardTableBody');
+            leaderboardBody.innerHTML = '';
 
             if (players.length === 0) {
-                leaderboardTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="py-3 px-4 text-center text-sm text-gray-400">No players yet. Add a match to get started!</td>
-                    </tr>
-                `;
-            } else {
-                players.forEach((player, index) => { // Added index for rank
-                    const totalWins = (player.wins1v1 || 0) + (player.wins2v2 || 0);
-                    const totalLosses = (player.losses1v1 || 0) + (player.losses2v2 || 0);
-                    const totalGames = totalWins + totalLosses;
-                    const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(2) : 'N/A';
-
-                    const row = `
-                        <tr class="border-b border-gray-600 bg-gray-800 hover:bg-gray-700"> <!-- Removed odd: and even: classes -->
-                            <td class="py-3 px-4 text-left text-sm text-gray-50">${index + 1}</td> <!-- Rank column -->
-                            <td class="py-3 px-4 text-left text-sm font-medium text-blue-300">
-                                <a href="playerProfile.html?playerName=${encodeURIComponent(player.name)}" class="hover:underline">
-                                    ${player.name}
-                                </a>
-                            </td>
-                            <td class="py-3 px-4 text-center text-sm text-gray-50">${player.wins1v1 || 0}</td>
-                            <td class="py-3 px-4 text-center text-sm text-gray-50">${player.losses1v1 || 0}</td>
-                            <td class="py-3 px-4 text-center text-sm text-gray-50">${player.wins2v2 || 0}</td>
-                            <td class="py-3 px-4 text-center text-sm text-gray-50">${player.losses2v2 || 0}</td>
-                            <td class="py-3 px-4 text-center text-sm text-gray-50">${winRate}%</td>
-                        </tr>
-                    `;
-                    leaderboardTableBody.innerHTML += row;
-                });
+                leaderboardBody.innerHTML = '<tr><td colspan="9" class="py-3 px-4 text-center text-sm text-gray-400">No players to display yet. Play some matches!</td></tr>';
+                return;
             }
-            hideMessage('leaderboardErrorMessage'); // Hide loading message
+
+            players.forEach((player, index) => {
+                const row = leaderboardBody.insertRow();
+                row.className = 'border-b border-gray-600 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500';
+
+                // 1. Rank
+                const rankCell = row.insertCell();
+                rankCell.className = 'py-3 px-4 text-left whitespace-nowrap';
+                rankCell.textContent = index + 1;
+
+                // 2. Player Name and Avatar (MADE CLICKABLE)
+                const playerCell = row.insertCell();
+                playerCell.className = 'py-3 px-4 text-left whitespace-nowrap';
+                // Encode the player name to safely use it in a URL
+                const encodedPlayerName = encodeURIComponent(player.name);
+                playerCell.innerHTML = `
+                    <a href="playerProfile.html?playerName=${encodedPlayerName}" class="flex items-center text-blue-300 hover:text-blue-200 transition duration-150 ease-in-out">
+                        <img src="${player.avatarUrl}" alt="${player.name}" class="w-8 h-8 rounded-full mr-3 border-2 border-purple-500">
+                        <span>${player.name}</span>
+                    </a>
+                `;
+
+                // 3. Total 1v1 Games played
+                const games1v1Cell = row.insertCell();
+                games1v1Cell.className = 'py-3 px-4 text-center whitespace-nowrap';
+                games1v1Cell.textContent = player.games1v1;
+
+                // 4. 1v1 Win Rate (e.g., 3W - 2L)
+                const winRate1v1Cell = row.insertCell();
+                winRate1v1Cell.className = 'py-3 px-4 text-center whitespace-nowrap';
+                winRate1v1Cell.textContent = `${player.wins1v1}W - ${player.losses1v1}L`;
+
+                // 5. Total 2v2 Games played
+                const games2v2Cell = row.insertCell();
+                games2v2Cell.className = 'py-3 px-4 text-center whitespace-nowrap';
+                games2v2Cell.textContent = player.games2v2;
+
+                // 6. 2v2 Win Rate (e.g., 3W - 2L)
+                const winRate2v2Cell = row.insertCell();
+                winRate2v2Cell.className = 'py-3 px-4 text-center whitespace-nowrap';
+                winRate2v2Cell.textContent = `${player.wins2v2}W - ${player.losses2v2}L`;
+
+                // 7. Overall Win Rate (%)
+                const overallWinRateCell = row.insertCell();
+                overallWinRateCell.className = 'py-3 px-4 text-center whitespace-nowrap';
+                overallWinRateCell.textContent = `${player.overallWinRate.toFixed(2)}%`;
+
+                // 8. Current Streak
+                const streakCell = row.insertCell();
+                streakCell.className = 'py-3 px-4 text-center whitespace-nowrap';
+                const streakText = player.currentStreak > 0 ? `+${player.currentStreak}` : player.currentStreak.toString();
+                streakCell.textContent = streakText;
+                streakCell.classList.add(player.currentStreak > 0 ? 'text-green-400' : (player.currentStreak < 0 ? 'text-red-400' : 'text-gray-400'));
+
+                // 9. Last Played Date
+                const lastPlayedCell = row.insertCell();
+                lastPlayedCell.className = 'py-3 px-4 text-left whitespace-nowrap';
+                lastPlayedCell.textContent = formatDate(player.lastPlayed);
+            });
+
         } catch (error) {
-            console.error("Error fetching leaderboard:", error);
+            console.error("Error fetching or rendering leaderboard:", error);
             showMessage('leaderboardErrorMessage', `Error loading leaderboard: ${error.message}`, 'error');
         }
     }
+
+    // --- Clear All Data Functions ---
+    function initiateClearAllData() {
+        if (clearConfirmationMessage) {
+            clearConfirmationMessage.classList.remove('hidden');
+            showMessage('clearDataMessage', 'Confirming will delete all player and match data. This cannot be undone!', 'error');
+        }
+    }
+
+    async function clearAllDataConfirmed() {
+        try {
+            // Disable buttons to prevent double-clicks
+            confirmClearButton.disabled = true;
+            cancelClearButton.disabled = true;
+            showMessage('clearDataMessage', 'Clearing data, please wait...', 'info');
+
+            const playersRef = collection(db, PLAYERS_COLLECTION_PATH);
+            const matchesRef = collection(db, MATCHES_COLLECTION_PATH);
+
+            // Fetch all player documents
+            const playerDocs = await getDocs(playersRef);
+            const playerBatch = writeBatch(db);
+            playerDocs.forEach(doc => {
+                playerBatch.delete(doc.ref);
+            });
+            await playerBatch.commit();
+            console.log("All player data deleted.");
+
+            // Fetch all match documents
+            const matchDocs = await getDocs(matchesRef);
+            const matchBatch = writeBatch(db);
+            matchDocs.forEach(doc => {
+                matchBatch.delete(doc.ref);
+            });
+            await matchBatch.commit();
+            console.log("All match data deleted.");
+
+            showMessage('clearDataMessage', 'All leaderboard data has been successfully cleared.', 'success');
+            await fetchAndRenderLeaderboard(); // Refresh leaderboard after clearing
+        } catch (error) {
+            console.error("Error clearing all data:", error);
+            showMessage('leaderboardErrorMessage', `Error clearing data: ${error.message}`, 'error');
+        } finally {
+            if (clearConfirmationMessage) { 
+                clearConfirmationMessage.classList.add('hidden');
+            }
+            if (clearDataMessage) { 
+                clearDataMessage.textContent = ''; 
+            }
+            confirmClearButton.disabled = false;
+            cancelClearButton.disabled = false;
+        }
+    }
+
+    function cancelClearAllData() {
+        if (clearConfirmationMessage) { 
+            clearConfirmationMessage.classList.add('hidden');
+        }
+        if (clearDataMessage) { 
+            clearDataMessage.textContent = ''; 
+        }
+    }
+
 
     // Event Listeners
     gameTypeRadios.forEach(radio => radio.addEventListener('change', updateGameTypeDisplay));
@@ -556,9 +688,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Clear All Data Event Listeners
     clearAllDataButton.addEventListener('click', initiateClearAllData);
-    confirmClearButton.addEventListener('click', clearAllDataConfirmed);
-    cancelClearButton.addEventListener('click', cancelClearAllData);
+    confirmClearButton.addEventListener('click', clearAllDataConfirmed); 
+    cancelClearButton.addEventListener('click', cancelClearAllData); 
 
-    // Initial display update (triggered after auth state is determined)
+    // Initial display update
     updateGameTypeDisplay();
 });

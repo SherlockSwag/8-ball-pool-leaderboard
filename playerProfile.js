@@ -1,6 +1,6 @@
 // playerProfile.js
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getFirestore, doc, getDoc, collection, query, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
 // Import your local firebase-config.js
@@ -25,297 +25,374 @@ try {
         finalFirebaseConfig = localFirebaseConfig;
         console.warn("playerProfile.js: Runtime variable '__firebase_config' is not valid or empty. Using local 'firebase-config.js'.");
         if (finalFirebaseConfig.projectId === "YOUR_FIREBASE_PROJECT_ID") {
-            console.warn("playerProfile.js: Using placeholder Firebase Project ID from local firebase-config.js. Please update it!");
+            console.error("playerProfile.js: Firebase is using placeholder 'YOUR_FIREBASE_PROJECT_ID'. Please update firebase-config.js with your actual Firebase project ID.");
+            showMessage('profileErrorMessage', 'Firebase is not correctly configured. Please check console.', 'error');
         }
     }
     initializeApp(finalFirebaseConfig);
     db = getFirestore();
     auth = getAuth();
     console.log("playerProfile.js: Firebase initialized in playerProfile.js");
-} catch (e) {
-    console.error("playerProfile.js: Failed to initialize Firebase:", e);
-    // You might want to show a user-friendly error message on the page
+} catch (error) {
+    console.error("playerProfile.js: Error initializing Firebase:", error);
+    showMessage('profileErrorMessage', `Failed to initialize Firebase: ${error.message}`, 'error');
 }
 
-// Define the correct collection path for players
-const PLAYERS_COLLECTION_PATH = `artifacts/${appId}/public/data/players`;
-// Define the correct collection path for matches
-const MATCHES_COLLECTION_PATH = `artifacts/${appId}/public/data/matches`;
-
-
-// --- Helper function to display messages ---
+// Helper function to display messages
 function showMessage(elementId, message, type = 'info') {
     const element = document.getElementById(elementId);
     if (element) {
         element.textContent = message;
-        element.className = `p-3 rounded-lg text-sm text-center mt-4 ${
-            type === 'error' ? 'bg-red-700 text-white' :
-            type === 'success' ? 'bg-green-600 text-white' :
-            'bg-blue-600 text-white'
-        }`;
+        element.className = `p-3 rounded-md text-center text-sm mt-4 ${type === 'error' ? 'bg-red-800 text-white' : type === 'info' ? 'bg-blue-800 text-white' : 'bg-green-800 text-white'}`;
         element.classList.remove('hidden');
     }
 }
 
-// --- Helper function to hide messages ---
 function hideMessage(elementId) {
     const element = document.getElementById(elementId);
     if (element) {
         element.classList.add('hidden');
-        element.textContent = ''; // Clear text content when hidden
+        element.textContent = ''; // Clear text when hidden
     }
 }
 
-// --- Main function to fetch and render player profile ---
+
 async function fetchAndRenderPlayerProfile() {
     console.log("playerProfile.js: fetchAndRenderPlayerProfile called.");
 
-    // Get references to all the elements that will display data
-    const playerAvatar = document.getElementById('playerAvatar');
-    const playerNameDisplay = document.getElementById('playerNameDisplay');
-    const totalGamesPlayed = document.getElementById('totalGamesPlayed');
-    const totalWinsLosses = document.getElementById('totalWinsLosses');
-    const overallWinRate = document.getElementById('overallWinRate');
-    const longestWinStreak = document.getElementById('longestWinStreak');
-    const longestLosingStreak = document.getElementById('longestLosingStreak');
-    const currentStreak = document.getElementById('currentStreak');
-    const games1v1 = document.getElementById('games1v1');
-    const winsLosses1v1 = document.getElementById('winsLosses1v1');
-    const winRate1v1 = document.getElementById('winRate1v1');
-    const games2v2 = document.getElementById('games2v2');
-    const winsLosses2v2 = document.getElementById('winsLosses2v2');
-    const winRate2v2 = document.getElementById('winRate2v2');
-    const playerProfileLoadingMessage = document.getElementById('playerProfileLoadingMessage');
-
-    // Show loading message initially and clear previous messages
-    if (playerProfileLoadingMessage) playerProfileLoadingMessage.classList.remove('hidden');
-    hideMessage('profileErrorMessage');
-    hideMessage('profileSuccessMessage');
+    // Get player name from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    currentPlayerName = urlParams.get('playerName');
 
     if (!currentPlayerName) {
-        console.warn("playerProfile.js: currentPlayerName is null or empty.");
-        showMessage('profileErrorMessage', 'Player name not found in URL. Please ensure the link from the leaderboard includes "?playerName=PlayerName".', 'error');
-        if (playerProfileLoadingMessage) playerProfileLoadingMessage.classList.add('hidden');
-        // Set all elements to N/A or default if player name is missing
-        if (playerAvatar) playerAvatar.src = "https://placehold.co/96x96/4299E1/FFFFFF?text=?";
-        if (playerNameDisplay) playerNameDisplay.textContent = 'Player not found.';
-        if (totalGamesPlayed) totalGamesPlayed.textContent = 'N/A';
-        if (totalWinsLosses) totalWinsLosses.textContent = 'N/A';
-        if (overallWinRate) overallWinRate.textContent = 'N/A';
-        if (longestWinStreak) longestWinStreak.textContent = 'N/A';
-        if (longestLosingStreak) longestLosingStreak.textContent = 'N/A';
-        if (currentStreak) currentStreak.textContent = 'N/A';
-        if (games1v1) games1v1.textContent = 'N/A';
-        if (winsLosses1v1) winsLosses1v1.textContent = 'N/A';
-        if (winRate1v1) winRate1v1.textContent = 'N/A';
-        if (games2v2) games2v2.textContent = 'N/A';
-        if (winsLosses2v2) winsLosses2v2.textContent = 'N/A';
-        if (winRate2v2) winRate2v2.textContent = 'N/A';
-        renderRivalries({}); // Clear tables
-        renderPartnerships({}); // Clear tables
+        console.error("playerProfile.js: Player name not found in URL.");
+        showMessage('profileErrorMessage', 'Player name not specified in URL.', 'error');
         return;
     }
 
-    console.log(`playerProfile.js: Attempting to fetch player: "${currentPlayerName}" from Firestore at path: "${PLAYERS_COLLECTION_PATH}".`);
+    console.log(`playerProfile.js: Extracted playerName from URL: "${currentPlayerName}"`);
+
+    const playersCollectionRef = collection(db, 'artifacts/local-pool-tracker-app/public/data/players');
+    const playerDocRef = doc(playersCollectionRef, currentPlayerName);
+
     try {
-        const playerDocRef = doc(db, PLAYERS_COLLECTION_PATH, currentPlayerName);
+        console.log(`playerProfile.js: Attempting to fetch player: "${currentPlayerName}" from Firestore at path: "${playersCollectionRef.path}".`);
         const playerDocSnap = await getDoc(playerDocRef);
 
         if (playerDocSnap.exists()) {
             const playerData = playerDocSnap.data();
             console.log("playerProfile.js: Player data fetched successfully:", playerData);
 
-            // Calculate overall stats
-            const totalGames = (playerData.wins || 0) + (playerData.losses || 0);
-            const overallWinRateValue = totalGames > 0 ? ((playerData.wins / totalGames) * 100).toFixed(1) : 0;
+            // --- Console Logs for Display Debugging ---
+            console.log("playerProfile.js: Starting display rendering check.");
+            console.log("playerProfile.js: Player Name:", playerData.name);
+            console.log("playerProfile.js: Avatar URL:", playerData.avatarUrl);
+            console.log("playerProfile.js: Total Games Played (from data):", playerData.totalGamesPlayed);
+            console.log("playerProfile.js: Total Wins (from data):", playerData.totalWins);
+            console.log("playerProfile.js: Total Losses (from data):", playerData.totalLosses);
+            console.log("playerProfile.js: Overall Win Rate (from data):", playerData.overallWinRate);
+            console.log("playerProfile.js: Current Streak (from data):", playerData.currentStreak);
+            console.log("playerProfile.js: Longest Win Streak (from data):", playerData.longestWinStreak);
+            console.log("playerProfile.js: Longest Losing Streak (from data):", playerData.longestLosingStreak);
+            console.log("playerProfile.js: Partnerships (from data):", playerData.partnerships);
+            // --- End Console Logs for Display Debugging ---
 
-            // Calculate 1v1 stats
-            const wins1v1 = playerData.wins1v1 || 0;
-            const losses1v1 = playerData.losses1v1 || 0;
-            const games1v1Total = wins1v1 + losses1v1;
-            const winRate1v1Value = games1v1Total > 0 ? ((wins1v1 / games1v1Total) * 100).toFixed(1) : 0;
-
-            // Calculate 2v2 stats
-            const wins2v2 = playerData.wins2v2 || 0;
-            const losses2v2 = playerData.losses2v2 || 0;
-            const games2v2Total = wins2v2 + losses2v2;
-            const winRate2v2Value = games2v2Total > 0 ? ((wins2v2 / games2v2Total) * 100).toFixed(1) : 0;
-
-            // Update player avatar
-            if (playerAvatar) {
-                playerAvatar.src = playerData.profilePicUrl || `https://placehold.co/96x96/4299E1/FFFFFF?text=${encodeURIComponent(playerData.name ? playerData.name.charAt(0).toUpperCase() : '?')}`;
+            // Update player name in header
+            const profileNameElement = document.getElementById('profilePlayerName');
+            if (profileNameElement) {
+                profileNameElement.textContent = playerData.name || currentPlayerName;
+                console.log(`playerProfile.js: Profile name updated to: ${profileNameElement.textContent}`);
             }
 
-            // Update main player details
-            if (playerNameDisplay) playerNameDisplay.textContent = playerData.name || 'Unknown Player';
-            if (totalGamesPlayed) totalGamesPlayed.textContent = totalGames;
-            if (totalWinsLosses) totalWinsLosses.textContent = `${playerData.wins || 0}W / ${playerData.losses || 0}L`;
-            if (overallWinRate) overallWinRate.textContent = `${overallWinRateValue}%`;
+            // Update avatar
+            const avatarElement = document.getElementById('playerAvatar');
+            if (avatarElement && playerData.avatarUrl) {
+                avatarElement.src = playerData.avatarUrl;
+                console.log(`playerProfile.js: Avatar src set to: ${avatarElement.src}`);
+            } else if (avatarElement) {
+                // Fallback if no avatar URL is provided
+                avatarElement.src = 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Default&size=64';
+                console.log("playerProfile.js: Using default avatar as avatarUrl is missing.");
+            }
 
-            // Update streaks
-            if (longestWinStreak) longestWinStreak.textContent = playerData.longestWinStreak || 0;
-            if (longestLosingStreak) longestLosingStreak.textContent = playerData.longestLosingStreak || 0;
-            if (currentStreak) {
-                const streakValue = playerData.streak !== undefined ? playerData.streak : 0;
-                const streakText = streakValue >= 0 ? `${streakValue} Wins` : `${Math.abs(streakValue)} Losses`;
-                currentStreak.textContent = streakText;
+            // Update overall stats
+            const totalGamesPlayedElement = document.getElementById('totalGamesPlayed');
+            //const totalWinsElement = document.getElementById('totalWins');
+            //const totalLossesElement = document.getElementById('totalLosses');
+            const overallWinsLossesElement = document.getElementById('overallWinsLosses');
+            const overallWinRateElement = document.getElementById('overallWinRate');
+
+            if (totalGamesPlayedElement) {
+                totalGamesPlayedElement.textContent = playerData.totalGamesPlayed || 0;
+                console.log(`playerProfile.js: Total Games Played element set to: ${totalGamesPlayedElement.textContent}`);
+            }
+            //if (totalWinsElement) {
+            //    totalWinsElement.textContent = playerData.totalWins || 0;
+            //    console.log(`playerProfile.js: Total Wins element set to: ${totalWinsElement.textContent}`);
+            //}
+            //if (totalLossesElement) {
+            //    totalLossesElement.textContent = playerData.totalLosses || 0;
+            //    console.log(`playerProfile.js: Total Losses element set to: ${totalLossesElement.textContent}`);
+            //}
+            if (overallWinsLossesElement) {
+                const totalWins = playerData.totalWins || 0;
+                const totalLosses = playerData.totalLosses || 0;
+                overallWinsLossesElement.textContent = `${totalWins}W - ${totalLosses}L`;
+                console.log(`playerProfile.js: Overall Wins - Losses element set to: ${overallWinsLossesElement.textContent}`);
+            }
+            if (overallWinRateElement) {
+                const overallWinRate = typeof playerData.overallWinRate === 'number' ? playerData.overallWinRate.toFixed(1) : '0.0';
+                overallWinRateElement.textContent = `${overallWinRate}%`;
+                console.log(`playerProfile.js: Overall Win Rate element set to: ${overallWinRateElement.textContent}`);
             }
 
             // Update 1v1 stats
-            if (games1v1) games1v1.textContent = games1v1Total;
-            if (winsLosses1v1) winsLosses1v1.textContent = `${wins1v1}W / ${losses1v1}L`;
-            if (winRate1v1) winRate1v1.textContent = `${winRate1v1Value}%`;
+            const games1v1Element = document.getElementById('games1v1');
+            //const wins1v1Element = document.getElementById('wins1v1');
+            //const losses1v1Element = document.getElementById('losses1v1');
+            const winsLosses1v1Element = document.getElementById('winsLosses1v1');
+            const winRate1v1Element = document.getElementById('winRate1v1');
+
+            if (games1v1Element) {
+                games1v1Element.textContent = playerData.games1v1 || 0;
+                console.log(`playerProfile.js: 1v1 Games element set to: ${games1v1Element.textContent}`);
+            }
+            //if (wins1v1Element) {
+            //    wins1v1Element.textContent = playerData.wins1v1 || 0;
+            //    console.log(`playerProfile.js: 1v1 Wins element set to: ${wins1v1Element.textContent}`);
+            //}
+            //if (losses1v1Element) {
+            //    losses1v1Element.textContent = playerData.losses1v1 || 0;
+            //    console.log(`playerProfile.js: 1v1 Losses element set to: ${losses1v1Element.textContent}`);
+            //}
+            if (winsLosses1v1Element) {
+                const wins1v1 = playerData.wins1v1 || 0;
+                const losses1v1 = playerData.losses1v1 || 0;
+                winsLosses1v1Element.textContent = `${wins1v1}W - ${losses1v1}L`;
+                console.log(`playerProfile.js: Overall Wins - Losses element set to: ${winsLosses1v1Element.textContent}`);
+            }
+
+            if (winRate1v1Element) {
+                const winRate1v1 = typeof playerData.winRate1v1 === 'number' ? playerData.winRate1v1.toFixed(1) : '0.0';
+                winRate1v1Element.textContent = `${winRate1v1}%`;
+                console.log(`playerProfile.js: 1v1 Win Rate element set to: ${winRate1v1Element.textContent}`);
+            }
 
             // Update 2v2 stats
-            if (games2v2) games2v2.textContent = games2v2Total;
-            if (winsLosses2v2) winsLosses2v2.textContent = `${wins2v2}W / ${losses2v2}L`;
-            if (winRate2v2) winRate2v2.textContent = `${winRate2v2Value}%`;
+            const games2v2Element = document.getElementById('games2v2');
+            //const wins2v2Element = document.getElementById('wins2v2');
+            //const losses2v2Element = document.getElementById('losses2v2');
+            const winsLosses2v2Element = document.getElementById('winsLosses2v2');
+            const winRate2v2Element = document.getElementById('winRate2v2');
 
-            // Hide loading message
-            if (playerProfileLoadingMessage) playerProfileLoadingMessage.classList.add('hidden');
+            if (games2v2Element) {
+                games2v2Element.textContent = playerData.games2v2 || 0;
+                console.log(`playerProfile.js: 2v2 Games element set to: ${games2v2Element.textContent}`);
+            }
+            //if (wins2v2Element) {
+            //    wins2v2Element.textContent = playerData.wins2v2 || 0;
+            //    console.log(`playerProfile.js: 2v2 Wins element set to: ${wins2v2Element.textContent}`);
+            //}
+            //if (losses2v2Element) {
+            //    losses2v2Element.textContent = playerData.losses2v2 || 0;
+            //    console.log(`playerProfile.js: 2v2 Losses element set to: ${losses2v2Element.textContent}`);
+            //}
+            if (winsLosses2v2Element) {
+                const wins2v2 = playerData.wins2v2 || 0;
+                const losses2v2 = playerData.losses2v2 || 0;
+                winsLosses2v2Element.textContent = `${wins2v2}W - ${losses2v2}L`;
+                console.log(`playerProfile.js: Overall Wins - Losses element set to: ${winsLosses2v2Element.textContent}`);
+            }
+            if (winRate2v2Element) {
+                const winRate2v2 = typeof playerData.winRate2v2 === 'number' ? playerData.winRate2v2.toFixed(1) : '0.0';
+                winRate2v2Element.textContent = `${winRate2v2}%`;
+                console.log(`playerProfile.js: 2v2 Win Rate element set to: ${winRate2v2Element.textContent}`);
+            }
 
-            // Populate rivalry table
-            renderRivalries(playerData.rivalries || {});
-            // Populate partnerships table
-            renderPartnerships(playerData.partnerships || {});
 
+            // Update streaks
+            const currentStreakElement = document.getElementById('currentStreak');
+            if (currentStreakElement) {
+                const streak = playerData.currentStreak || 0;
+                
+                // Determine if it's a winning or losing streak based on its sign
+                // Display the absolute value of the streak
+                const displayedStreak = Math.abs(streak);
+                const streakType = streak >= 0 ? 'Wins' : 'Losses'; // Keeps 'Wins' or 'Losses'
+                
+                currentStreakElement.textContent = `${displayedStreak} ${streakType}`;
+                console.log(`playerProfile.js: Current Streak element set to: ${currentStreakElement.textContent}`);
+            }
+
+            const longestWinStreakElement = document.getElementById('longestWinStreak');
+            if (longestWinStreakElement) {
+                longestWinStreakElement.textContent = playerData.longestWinStreak || 0;
+                console.log(`playerProfile.js: Longest Win Streak element set to: ${longestWinStreakElement.textContent}`);
+            }
+
+            const longestLosingStreakElement = document.getElementById('longestLosingStreak');
+            if (longestLosingStreakElement) {
+                longestLosingStreakElement.textContent = playerData.longestLosingStreak || 0;
+                console.log(`playerProfile.js: Longest Losing Streak element set to: ${longestLosingStreakElement.textContent}`);
+            }
+
+
+            // Render Rivalries
+            const rivalriesTableBody = document.getElementById('rivalriesTableBody');
+            const noRivalriesMessage = document.getElementById('noRivalriesMessage');
+            if (rivalriesTableBody) {
+                rivalriesTableBody.innerHTML = ''; // Clear previous entries
+                if (playerData.rivalries && Object.keys(playerData.rivalries).length > 0) {
+                    Object.entries(playerData.rivalries).forEach(([opponent, stats]) => {
+                        const row = `
+                            <tr class="border-b border-gray-200 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500">
+                                <td class="py-2 px-4 text-sm text-gray-200">${opponent}</td>
+                                <td class="py-2 px-4 text-center text-sm text-gray-200">${stats.wins || 0}</td>
+                                <td class="py-2 px-4 text-center text-sm text-gray-200">${stats.losses || 0}</td>
+                            </tr>
+                        `;
+                        rivalriesTableBody.innerHTML += row;
+                    });
+                    noRivalriesMessage.classList.add('hidden');
+                    console.log(`playerProfile.js: Rivalries table populated with ${Object.keys(playerData.rivalries).length} entries.`);
+                } else {
+                    noRivalriesMessage.classList.remove('hidden');
+                    console.log("playerProfile.js: No rivalries data found or rivalries object is empty.");
+                }
+            }
+            
+            function calculateWinRate(wins, losses) {
+                if (wins === 0 && losses === 0) {
+                    return 0;
+                }
+                return (wins / (wins + losses)) * 100;
+            }
+
+            // --- Start: Fetching and Rendering Rivalries (as a subcollection) ---
+            if (rivalriesTableBody) {
+                rivalriesTableBody.innerHTML = ''; // Clear previous entries
+                const rivalriesCollectionRef = collection(playerDocRef, 'rivalries');
+                const rivalriesSnapshot = await getDocs(rivalriesCollectionRef);
+                const rivalriesData = {};
+
+                if (!rivalriesSnapshot.empty) {
+                    rivalriesSnapshot.forEach(docSnap => {
+                        rivalriesData[docSnap.id] = docSnap.data(); // doc.id is the opponent's name
+                    });
+                    console.log("playerProfile.js: Fetched rivalries from subcollection:", rivalriesData);
+
+                    // Sort rivalries alphabetically by opponent name before rendering
+                    const sortedRivalries = Object.entries(rivalriesData).sort(([nameA], [nameB]) => nameA.localeCompare(nameB));
+
+                    if (sortedRivalries.length > 0) {
+                        sortedRivalries.forEach(([opponent, stats]) => {
+                            const wins = stats.wins || 0; // Ensure wins defaults to 0 if undefined
+                            const losses = stats.losses || 0; // Ensure losses defaults to 0 if undefined
+                            const winRate = calculateWinRate(wins, losses); // Calculate win rate
+
+                            const row = `
+                                <tr class="border-b border-gray-200 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500">
+                                    <td class="py-2 px-4 text-sm text-gray-200">
+                                        <a href="playerProfile.html?playerName=${encodeURIComponent(opponent)}" class="flex items-center text-blue-300 hover:text-blue-200 transition duration-150 ease-in-out">
+                                            <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(opponent)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffeedc,f4d15b&size=64" alt="${opponent}" class="w-8 h-8 rounded-full mr-3 border-2 border-orange-500">
+                                            <span>${opponent}</span>
+                                        </a>
+                                    </td>
+                                    <td class="py-2 px-4 text-center text-sm text-gray-200">${wins}</td>
+                                    <td class="py-2 px-4 text-center text-sm text-gray-200">${losses}</td>
+                                    <td class="py-2 px-4 text-center text-sm text-gray-200">${winRate.toFixed(2)}%</td>
+                                </tr>
+                            `;
+                            rivalriesTableBody.innerHTML += row;
+                        });
+                        noRivalriesMessage.classList.add('hidden');
+                        console.log(`playerProfile.js: Rivalries table populated with ${sortedRivalries.length} entries.`);
+                    } else {
+                        noRivalriesMessage.classList.remove('hidden');
+                        console.log("playerProfile.js: No rivalries data found in subcollection.");
+                    }
+                } else {
+                    noRivalriesMessage.classList.remove('hidden');
+                    console.log("playerProfile.js: Rivalries subcollection is empty.");
+                }
+            }
+            // --- End: Fetching and Rendering Rivalries ---
+
+
+            // --- Partnerships Section Update ---
+            const partnershipsTableBody = document.getElementById('partnershipsTableBody');
+            const noPartnershipsMessage = document.getElementById('noPartnershipsMessage');
+
+            if (partnershipsTableBody) {
+                partnershipsTableBody.innerHTML = ''; // Clear previous entries
+
+                // Check if playerData.partnerships exists and has entries
+                if (playerData.partnerships && Object.keys(playerData.partnerships).length > 0) {
+                    noPartnershipsMessage.classList.add('hidden'); // Hide "No partnerships" message
+
+                    // Sort partnerships alphabetically by teammate name before rendering
+                    const sortedPartnerships = Object.entries(playerData.partnerships).sort(([nameA], [nameB]) => nameA.localeCompare(nameB));
+
+                    if (sortedPartnerships.length > 0) {
+                        sortedPartnerships.forEach(([partner, stats]) => {
+                            const row = `
+                                <tr class="border-b border-gray-200 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500">
+                                    <td class="py-2 px-4 text-sm text-gray-200">
+                                        <a href="playerProfile.html?playerName=${encodeURIComponent(partner)}" class="flex items-center text-blue-300 hover:text-blue-200 transition duration-150 ease-in-out">
+                                            <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(partner)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffeedc,f4d15b&size=64" alt="${partner}" class="w-8 h-8 rounded-full mr-3 border-2 border-purple-500">
+                                            <span>${partner}</span>
+                                        </a>
+                                    </td>
+                                    <td class="py-2 px-4 text-center text-sm text-gray-200">${stats.wins || 0}</td>
+                                    <td class="py-2 px-4 text-center text-sm text-gray-200">${stats.losses || 0}</td>
+                                </tr>
+                            `;
+                            partnershipsTableBody.innerHTML += row;
+                        });
+                        noPartnershipsMessage.classList.add('hidden');
+                        console.log(`playerProfile.js: Partnerships table populated with ${sortedPartnerships.length} entries.`);
+                    } else {
+                        noPartnershipsMessage.classList.remove('hidden');
+                        console.log("playerProfile.js: No partnerships data found in player document.");
+                    }
+                } else {
+                    noPartnershipsMessage.classList.remove('hidden');
+                    console.log("playerProfile.js: Partnerships data is empty or missing in player document.");
+                }
+            }
+            // --- End: Fetching and Rendering Partnerships ---
+
+            hideMessage('profileErrorMessage');
         } else {
-            // Player not found in Firestore
-            console.warn(`playerProfile.js: Player document "${currentPlayerName}" does not exist in Firestore at path: "${PLAYERS_COLLECTION_PATH}".`);
-            if (playerProfileLoadingMessage) playerProfileLoadingMessage.classList.add('hidden');
-            showMessage('profileErrorMessage', `Player "${currentPlayerName}" not found in the database.`, 'error');
-            // Set all elements to "N/A" or "Not found"
-            if (playerAvatar) playerAvatar.src = "https://placehold.co/96x96/4299E1/FFFFFF?text=?";
-            if (playerNameDisplay) playerNameDisplay.textContent = `Player "${currentPlayerName}" not found.`;
-            if (totalGamesPlayed) totalGamesPlayed.textContent = 'N/A';
-            if (totalWinsLosses) totalWinsLosses.textContent = 'N/A';
-            if (overallWinRate) overallWinRate.textContent = 'N/A';
-            if (longestWinStreak) longestWinStreak.textContent = 'N/A';
-            if (longestLosingStreak) longestLosingStreak.textContent = 'N/A';
-            if (currentStreak) currentStreak.textContent = 'N/A';
-            if (games1v1) games1v1.textContent = 'N/A';
-            if (winsLosses1v1) winsLosses1v1.textContent = 'N/A';
-            if (winRate1v1) winRate1v1.textContent = 'N/A';
-            if (games2v2) games2v2.textContent = 'N/A';
-            if (winsLosses2v2) winsLosses2v2.textContent = 'N/A';
-            if (winRate2v2) winRate2v2.textContent = 'N/A';
-            renderRivalries({}); // Clear tables
-            renderPartnerships({}); // Clear tables
+            console.warn(`playerProfile.js: No player document found for "${currentPlayerName}".`);
+            showMessage('profileErrorMessage', `Player "${currentPlayerName}" not found.`, 'error');
         }
     } catch (error) {
-        console.error("playerProfile.js: Error fetching player profile:", error);
-        if (playerProfileLoadingMessage) playerProfileLoadingMessage.classList.add('hidden');
+        console.error("playerProfile.js: Error fetching player data:", error);
         showMessage('profileErrorMessage', `Error loading player profile: ${error.message}`, 'error');
-        // Set all elements to "Error" or "N/A"
-        if (playerAvatar) playerAvatar.src = "https://placehold.co/96x96/4299E1/FFFFFF?text=!";
-        if (playerNameDisplay) playerNameDisplay.textContent = 'Error loading player data.';
-        if (totalGamesPlayed) totalGamesPlayed.textContent = 'N/A';
-        if (totalWinsLosses) totalWinsLosses.textContent = 'N/A';
-        if (overallWinRate) overallWinRate.textContent = 'N/A';
-        if (longestWinStreak) longestWinStreak.textContent = 'N/A';
-        if (longestLosingStreak) longestLosingStreak.textContent = 'N/A';
-        if (currentStreak) currentStreak.textContent = 'N/A';
-        if (games1v1) games1v1.textContent = 'N/A';
-        if (winsLosses1v1) winsLosses1v1.textContent = 'N/A';
-        if (winRate1v1) winRate1v1.textContent = 'N/A';
-        if (games2v2) games2v2.textContent = 'N/A';
-        if (winsLosses2v2) winsLosses2v2.textContent = 'N/A';
-        if (winRate2v2) winRate2v2.textContent = 'N/A';
-        renderRivalries({}); // Clear tables
-        renderPartnerships({}); // Clear tables
     }
 }
 
-// Function to render Rivalries
-function renderRivalries(rivalries) {
-    const rivalriesTableBody = document.getElementById('rivalriesTableBody');
-    const noRivalriesMessage = document.getElementById('noRivalriesMessage');
-    rivalriesTableBody.innerHTML = ''; // Clear previous content
-
-    const rivalryNames = Object.keys(rivalries);
-    if (rivalryNames.length === 0) {
-        noRivalriesMessage.classList.remove('hidden');
-        // Add a placeholder row if no rivalries
-        rivalriesTableBody.innerHTML = `<tr><td colspan="4" class="py-3 px-4 text-center text-sm text-gray-400">No rivalries to display yet.</td></tr>`;
-        return;
-    } else {
-        noRivalriesMessage.classList.add('hidden');
-    }
-
-    rivalryNames.sort((a, b) => {
-        const totalGamesA = (rivalries[a].wins || 0) + (rivalries[a].losses || 0);
-        const totalGamesB = (rivalries[b].wins || 0) + (rivalries[b].losses || 0);
-        return totalGamesB - totalGamesA; // Sort by total games descending
-    }).forEach(rivalName => {
-        const rivalData = rivalries[rivalName];
-        const rivalWins = rivalData.wins || 0;
-        const rivalLosses = rivalData.losses || 0;
-        const totalRivalGames = rivalWins + rivalLosses;
-        const rivalWinRate = totalRivalGames > 0 ? ((rivalWins / totalRivalGames) * 100).toFixed(1) : 0;
-
-        const row = `
-            <tr class="border-b border-gray-700 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500">
-                <td class="py-2 px-4 text-sm text-gray-200">
-                    <a href="playerProfile.html?playerName=${encodeURIComponent(rivalName)}" class="text-blue-300 hover:text-blue-100 font-medium">
-                        ${rivalName}
-                    </a>
-                </td>
-                <td class="py-2 px-4 text-center text-sm text-green-300 font-medium">${rivalWins}</td>
-                <td class="py-2 px-4 text-center text-sm text-red-300 font-medium">${rivalLosses}</td>
-                <td class="py-2 px-4 text-center text-sm text-purple-300 font-medium">${rivalWinRate}%</td>
-            </tr>
-        `;
-        rivalriesTableBody.innerHTML += row;
-    });
-}
-
-// Function to render Partnerships
-function renderPartnerships(partnerships) {
-    const partnershipsTableBody = document.getElementById('partnershipsTableBody');
-    const noPartnershipsMessage = document.getElementById('noPartnershipsMessage');
-    partnershipsTableBody.innerHTML = ''; // Clear previous content
-
-    const partnershipNames = Object.keys(partnerships);
-    if (partnershipNames.length === 0) {
-        noPartnershipsMessage.classList.remove('hidden');
-        // Add a placeholder row if no partnerships
-        partnershipsTableBody.innerHTML = `<tr><td colspan="3" class="py-3 px-4 text-center text-sm text-gray-400">No partnerships to display yet.</td></tr>`;
-        return;
-    } else {
-        noPartnershipsMessage.classList.add('hidden');
-    }
-
-    partnershipNames.sort((a, b) => {
-        const totalGamesA = (partnerships[a].wins || 0) + (partnerships[a].losses || 0);
-        const totalGamesB = (partnerships[b].wins || 0) + (partnerships[b].losses || 0);
-        return totalGamesB - totalGamesA; // Sort by total games descending
-    }).forEach(partnerName => {
-        const partnerData = partnerships[partnerName];
-        const partnerWins = partnerData.wins || 0;
-        const partnerLosses = partnerData.losses || 0;
-        const row = `
-            <tr class="border-b border-gray-700 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500">
-                <td class="py-2 px-4 text-sm text-gray-200">
-                    <a href="playerProfile.html?playerName=${encodeURIComponent(partnerName)}" class="text-blue-300 hover:text-blue-100 font-medium">
-                        ${partnerName}
-                    </a>
-                </td>
-                <td class="py-2 px-4 text-center text-sm text-green-300 font-medium">${partnerWins}</td>
-                <td class="py-2 px-4 text-center text-sm text-red-300 font-medium">${partnerLosses}</td>
-            </tr>
-        `;
-        partnershipsTableBody.innerHTML += row;
-    });
-}
-
-// --- INITIALIZATION ON PAGE LOAD ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log("playerProfile.js: DOMContentLoaded fired.");
-
-    // Extract player name from URL query parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    currentPlayerName = urlParams.get('playerName');
-    console.log(`playerProfile.js: Extracted playerName from URL: "${currentPlayerName}"`);
+    // Initial authentication state check and profile fetch
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            // Sign in anonymously if no user is authenticated
+            try {
+                await signInAnonymously(auth);
+                console.log("playerProfile.js: Signed in anonymously for playerProfile.js.");
+                fetchAndRenderPlayerProfile(); // Call after successful sign-in to ensure context
+            } catch (error) {
+                console.error("playerProfile.js: Error signing in anonymously for playerProfile.js:", error);
+                showMessage('profileErrorMessage', `Authentication error: ${error.message}`, 'error');
+            }
+        } else {
+            currentUserId = user.uid;
+            console.log("playerProfile.js: Existing user detected for playerProfile.js:", currentUserId);
+            fetchAndRenderPlayerProfile(); // Call if already signed in
+        }
+    });
 
     // Event listener for "View All Match History" link
     const viewMatchHistoryLink = document.getElementById('viewMatchHistoryLink');
@@ -330,23 +407,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // Authenticate user and then fetch profile
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            // Sign in anonymously if no user is authenticated
-            try {
-                await signInAnonymously(auth);
-                console.log("playerProfile.js: Signed in anonymously.");
-                fetchAndRenderPlayerProfile(); // Call after successful sign-in to ensure context
-            } catch (error) {
-                console.error("playerProfile.js: Error signing in anonymously:", error);
-                showMessage('profileErrorMessage', `Authentication error: ${error.message}`, 'error');
-            }
-        } else {
-            currentUserId = user.uid;
-            console.log("playerProfile.js: Existing user detected:", currentUserId);
-            fetchAndRenderPlayerProfile(); // Call if already signed in
-        }
-    });
 });

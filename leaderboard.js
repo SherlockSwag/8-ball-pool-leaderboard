@@ -1,22 +1,7 @@
 // leaderboard.js
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-import { 
-    getFirestore, 
-    doc, 
-    setDoc, 
-    collection, 
-    query, 
-    getDocs, 
-    increment, 
-    writeBatch, 
-    deleteDoc, 
-    getDoc,
-    serverTimestamp, // Ensure serverTimestamp is imported here
-    orderBy
-} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
-
-// Import your local firebase-config.js
+import { getFirestore, doc, setDoc, collection, query, getDocs, increment, writeBatch, deleteDoc, getDoc,serverTimestamp,orderBy} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 import { firebaseConfig as localFirebaseConfig } from './firebase-config.js'; 
 
 let db;
@@ -24,52 +9,45 @@ let auth;
 let currentUserId = null;
 
 // --- ALL ELEMENT REFERENCES DECLARED HERE FOR GLOBAL ACCESS ---
+// Get elements for Match Date
+let matchDateInput;
 // Get elements for Player Inputs
 let player1Input;
 let player2Input;
 let player3Input;
 let player4Input;
-let matchDateInput; // <-- CORRECTLY DECLARED HERE
-
 // Get elements for Game Type selection
 let gameTypeRadios; 
 let team1PlayersContainer; 
 let team2PlayersContainer; 
-
 // Get elements for Winner Selection
 let winnerSelectionDiv; 
 let winnerPlayer1RadioDiv; 
 let winnerPlayer2RadioDiv; 
 let winnerTeam1RadioDiv; 
 let winnerTeam2RadioDiv; 
-
 // Get the actual radio buttons themselves for setting checked state
 let winnerPlayer1Radio; 
 let winnerPlayer2Radio; 
 let winnerTeam1Radio; 
 let winnerTeam2Radio; 
-
 let gameType1v1Radio; 
-let gameType2v2Radio; 
-
+let gameType2v2Radio;
 let winnerPlayer1Label; 
 let winnerPlayer2Label; 
 let team1Player1Label; 
 let team1Player2Label; 
 let team2Player3Label; 
 let team2Player4Label; 
-
 let addMatchButton; 
 let leaderboardTableBody; 
 let matchErrorMessageDisplay; 
-
 // Elements for Clear All Data
 let clearAllDataButton; 
 let clearConfirmationMessage; 
 let confirmClearButton; 
 let cancelClearButton; 
-let clearDataMessage; 
-// --- END ALL ELEMENT REFERENCES DECLARED HERE ---
+let clearDataMessage;
 
 // Determine the final firebaseConfig to use: Canvas-provided or local fallback
 let finalFirebaseConfig = {};
@@ -96,7 +74,6 @@ try {
     console.error("Failed to initialize Firebase:", error);
     alert("Error initializing Firebase. Check console for details.");
 }
-
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOMContentLoaded fired.");
@@ -126,7 +103,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- ASSIGNMENTS TO ELEMENT REFERENCES (NO 'const' or 'let' here for already declared vars) ---
-
     // Get elements for Game Type selection
     gameTypeRadios = document.querySelectorAll('input[name="gameType"]');
     team1PlayersContainer = document.getElementById('team1PlayersContainer'); 
@@ -138,6 +114,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     player3Input = document.getElementById('player3'); 
     player4Input = document.getElementById('player4'); 
     matchDateInput = document.getElementById('matchDate'); // <-- CORRECTLY ASSIGNED HERE
+
+    // --- NEW CODE TO SET CURRENT DATE ---
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const day = String(today.getDate()).padStart(2, '0');
+    
+    // Format: YYYY-MM-DD for HTML date input
+    matchDateInput.value = `${year}-${month}-${day}`;
 
     // Get elements for Winner Selection
     winnerSelectionDiv = document.getElementById('winnerSelection');
@@ -285,10 +270,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return 'N/A'; // Fallback for unexpected format
     }
 
-
     // Main function to handle adding a match
     // Inside leaderboard.js
-
     async function handleAddMatch() {
         hideMessage('matchErrorMessage'); // Hide any previous error messages
 
@@ -436,26 +419,43 @@ document.addEventListener('DOMContentLoaded', async () => {
                 let newLosses1v1 = currentData.losses1v1;
                 let newWins2v2 = currentData.wins2v2;
                 let newLosses2v2 = currentData.losses2v2;
-                let newCurrentStreak = currentData.currentStreak;
+                let newCurrentStreak = currentData.currentStreak || 0; // Initialize with 0 if undefined
+                let newLongestWinStreak = currentData.longestWinStreak || 0; // Initialize with 0 if undefined
+                let newLongestLosingStreak = currentData.longestLosingStreak || 0; // Initialize with 0 if undefined
 
                 if (gameType === '1v1') {
                     if (playerName === winnerName) {
                         newWins1v1++;
-                        newCurrentStreak = (newCurrentStreak > 0 ? newCurrentStreak : 0) + 1;
+                        // If previously on a losing streak, reset to 0 before incrementing
+                        newCurrentStreak = (newCurrentStreak < 0 ? 0 : newCurrentStreak) + 1; 
                     } else { // Loser
                         newLosses1v1++;
-                        newCurrentStreak = (newCurrentStreak < 0 ? newCurrentStreak : 0) - 1;
+                        // If previously on a winning streak, reset to 0 before decrementing
+                        newCurrentStreak = (newCurrentStreak > 0 ? 0 : newCurrentStreak) - 1;
                     }
                 } else { // 2v2
                     if (winningTeam.includes(playerName)) {
                         newWins2v2++;
-                        newCurrentStreak = (newCurrentStreak > 0 ? newCurrentStreak : 0) + 1;
+                        // If previously on a losing streak, reset to 0 before incrementing
+                        newCurrentStreak = (newCurrentStreak < 0 ? 0 : newCurrentStreak) + 1;
                     } else { // Losing team
                         newLosses2v2++;
-                        newCurrentStreak = (newCurrentStreak < 0 ? newCurrentStreak : 0) - 1;
+                        // If previously on a winning streak, reset to 0 before decrementing
+                        newCurrentStreak = (newCurrentStreak > 0 ? 0 : newCurrentStreak) - 1;
                     }
                 }
 
+                // --- NEW LOGIC FOR LONGEST STREAKS ---
+                if (newCurrentStreak > 0) { // It's a winning streak
+                    if (newCurrentStreak > newLongestWinStreak) {
+                        newLongestWinStreak = newCurrentStreak;
+                    }
+                } else if (newCurrentStreak < 0) { // It's a losing streak
+                    // Use Math.abs because longestLosingStreak should store a positive value
+                    if (Math.abs(newCurrentStreak) > newLongestLosingStreak) {
+                        newLongestLosingStreak = Math.abs(newCurrentStreak);
+                    }
+                }
                 // Calculate derived stats
                 const newGames1v1 = newWins1v1 + newLosses1v1;
                 const newWinRate1v1 = calculateWinRate(newWins1v1, newLosses1v1);
@@ -482,8 +482,44 @@ document.addEventListener('DOMContentLoaded', async () => {
                     totalGamesPlayed: newTotalGamesPlayed,
                     overallWinRate: newOverallWinRate,
                     currentStreak: newCurrentStreak,
+                    longestWinStreak: newLongestWinStreak,
+                    longestLosingStreak: newLongestLosingStreak,
                     lastPlayed: serverTimestamp()
                 });
+                // --- START OF MODIFIED RIVALRIES LOGIC (as Subcollection) ---
+                if (gameType === '1v1') {
+                    const opponentName = (playerName === winnerName) ? loserName : winnerName;
+                    if (opponentName) {
+                        // Construct the reference to the rivalry document in the subcollection
+                        const rivalryDocRef = doc(db, PLAYERS_COLLECTION_PATH, playerName, 'rivalries', opponentName);
+                        batch.set(rivalryDocRef, {
+                            wins: increment(playerName === winnerName ? 1 : 0),
+                            losses: increment(playerName === loserName ? 1 : 0)
+                        }, { merge: true }); // Use merge: true to create if not exists, or update if exists
+                    }
+                } else { // 2v2
+                    const currentTeam = winningTeam.includes(playerName) ? winningTeam : losingTeam;
+                    const opposingTeam = winningTeam.includes(playerName) ? losingTeam : winningTeam;
+
+                    for (const opponent of opposingTeam) {
+                        // For each opponent in 2v2, update their rivalry record
+                        const rivalryDocRef = doc(db, PLAYERS_COLLECTION_PATH, playerName, 'rivalries', opponent);
+                        batch.set(rivalryDocRef, {
+                            wins: increment(currentTeam === winningTeam ? 1 : 0),
+                            losses: increment(currentTeam === losingTeam ? 1 : 0)
+                        }, { merge: true });
+                    }
+
+                    // --- Partnerships (still as a map within the player document as requested implicitly) ---
+                    const teammate = currentTeam.find(p => p !== playerName);
+                    if (teammate) {
+                        batch.update(playerRef, {
+                            [`partnerships.${teammate}.wins`]: increment(currentTeam === winningTeam ? 1 : 0),
+                            [`partnerships.${teammate}.losses`]: increment(currentTeam === losingTeam ? 1 : 0)
+                        });
+                    }
+                }
+                // --- END OF MODIFIED RIVALRIES LOGIC ---
             }
 
             await batch.commit();
@@ -494,7 +530,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             player2Input.value = '';
             player3Input.value = '';
             player4Input.value = '';
-            matchDateInput.value = '';
+
+            // --- MODIFIED CODE FOR DATE INPUT ---
+            // Set matchDateInput back to current date instead of clearing it
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            matchDateInput.value = `${year}-${month}-${day}`;
+            // --- END MODIFIED CODE ---
             
             // This is crucial: Uncheck all radio buttons after a successful submission
             // Since all now share the 'name="winner"', we can select all and uncheck.
@@ -538,6 +582,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     totalGamesPlayed: data.totalGamesPlayed || 0,
                     overallWinRate: data.overallWinRate || 0,
                     currentStreak: data.currentStreak || 0,
+                    longestWinStreak: data.longestWinStreak || 0,
+                    longestLosingStreak: data.longestLosingStreak || 0,
                     lastPlayed: data.lastPlayed
                 });
             });
@@ -599,8 +645,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // 8. Current Streak
                 const streakCell = row.insertCell();
                 streakCell.className = 'py-3 px-4 text-center whitespace-nowrap';
-                const streakText = player.currentStreak > 0 ? `+${player.currentStreak}` : player.currentStreak.toString();
+
+                let streakText;
+                if (player.currentStreak > 0) {
+                    streakText = `+${player.currentStreak}`; // Display with a '+' sign for winning streaks
+                } else if (player.currentStreak < 0) {
+                    streakText = `${player.currentStreak}`; // Display with a '-' sign for losing streaks
+                } else {
+                    streakText = '0'; // Display '0' for no streak
+                }
+
                 streakCell.textContent = streakText;
+                // The color logic remains the same
                 streakCell.classList.add(player.currentStreak > 0 ? 'text-green-400' : (player.currentStreak < 0 ? 'text-red-400' : 'text-gray-400'));
 
                 // 9. Last Played Date
@@ -676,7 +732,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             clearDataMessage.textContent = ''; 
         }
     }
-
 
     // Event Listeners
     gameTypeRadios.forEach(radio => radio.addEventListener('change', updateGameTypeDisplay));

@@ -7,13 +7,13 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Google Fonts for 'Inter' -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="css/style.css"> 
 </head>
 <body class="bg-gradient-to-br from-gray-900 to-gray-800 font-inter flex flex-col items-center min-h-screen px-4 text-gray-100">
     <!-- Main Header - Now a scrolling header -->
     <!-- Dashboard Menu -->
     <header class="w-full max-w-5xl bg-gradient-to-r from-blue-700 to-purple-800 shadow-xl py-4 text-white text-center rounded-b-xl mb-8">
-        <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Player List</h1>
+        <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Pool House Player List</h1>
         <nav class="w-full max-w-5xl mx-auto mt-4 px-4">
             <ul class="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
                 <li>
@@ -28,11 +28,11 @@
                 </li>
                 <li>
                     <a href="calculators.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Pool Price
+                        Calculator
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
+                    <a href="allMatches.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
                         Match History
                     </a>
                 </li>
@@ -44,9 +44,7 @@
             </ul>
         </nav>
     </header>
-
-    <main class="w-full max-w-5xl mb-8">
-        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-5xl mb-8 mt-2">
             <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Player Directory</h2>
             
             <div id="playersGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -57,8 +55,7 @@
 
             <p id="noPlayersMessage" class="col-span-full py-3 px-4 text-center text-sm text-gray-400 hidden">No players found yet.</p>
         </div>
-    </main>
 
-    <script type="module" src="playerList.js"></script>
+    <script type="module" src="js/playerList.js"></script>
 </body>
 </html>

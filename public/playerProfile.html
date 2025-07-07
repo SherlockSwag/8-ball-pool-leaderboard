@@ -108,48 +108,98 @@
                 </div>
             </section>
 
+            <!-- Recent Match History Section -->
+            <section id="recentMatchesCard" class="bg-gray-800 rounded-lg mb-6 hidden">
+                <h3 class="text-xl text-center font-semibold text-blue-500 mb-4 border-b border-gray-700 pb-2">RECENT MATCHES</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-lg text-center font-medium text-gray-300 mb-3">1v1 Matches</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-gray-700 rounded-lg overflow-hidden">
+                                <thead>
+                                    <tr class="bg-gray-600 text-gray-300 text-left text-sm">
+                                        <th class="py-2 px-3 font-semibold">Date</th>
+                                        <th class="py-2 px-3 font-semibold">Opponent</th>
+                                        <th class="py-2 px-3 font-semibold text-center">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent1v1MatchesTableBody">
+                                    <tr><td colspan="4" class="py-3 px-4 text-center text-gray-400">No 1v1 recent matches.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg text-center font-medium text-gray-300 mb-3">2v2 Matches</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-gray-700 rounded-lg overflow-hidden">
+                                <thead>
+                                    <tr class="bg-gray-600 text-gray-300 text-left text-sm">
+                                        <th class="py-2 px-3 font-semibold">Date</th>
+                                        <th class="py-2 px-3 font-semibold">Teammate(s) & Opponent(s)</th>
+                                        <th class="py-2 px-3 font-semibold text-center">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent2v2MatchesTableBody">
+                                    <tr><td colspan="4" class="py-3 px-4 text-center text-gray-400">No 2v2 recent matches.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-6">
+                    <button id="viewAllMatchHistoryBtn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-lg">
+                        View All Match History
+                    </button>
+                </div>
+            </section>
+
             <!-- Rivalries Section -->
-            <section class="mb-8">
-                <h2 class="text-xl font-semibold text-orange-300 mb-4 border-b border-gray-700 pb-2">Rivalries (Vs. Other Players)</h2>
+            <section id="rivalriesCard" class="mb-8"> 
+                <h2 class="text-xl text-center font-semibold text-orange-400 mb-4 border-b border-gray-700 pb-2">RIVALRIES</h2>
                 <div class="overflow-x-auto rounded-lg border border-gray-700">
                     <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden">
                         <thead class="bg-gray-600">
                             <tr>
                                 <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Opponent</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Wins Against</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Losses Against</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Win/Loss Bar</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Wins</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Losses</th>
                                 <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Win Rate %</th>
-                            </tr>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Current Streak</th> </tr>
                         </thead>
                         <tbody id="rivalriesTableBody" class="text-gray-100">
-                            <!-- Rivalry rows will be dynamically inserted here by playerProfile.js -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
                 <p id="noRivalriesMessage" class="py-3 px-4 text-center text-sm text-gray-400 hidden">No rivalries to display yet.</p>
             </section>
 
             <!-- Partnerships Section -->
-            <section>
-                <h2 class="text-xl font-semibold text-purple-300 mb-4 border-b border-gray-700 pb-2">Partnerships (With Teammates)</h2>
+            <section id="partnershipsCard" class="mb-8">
+                <h2 class="text-xl text-center font-semibold text-purple-500 mb-4 border-b border-gray-700 pb-2">PARTNERSHIPS</h2>
                 <div class="overflow-x-auto rounded-lg border border-gray-700">
                     <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden">
                         <thead class="bg-gray-600">
                             <tr>
                                 <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Teammate</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Wins Together</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Losses Together</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Wins/Losses</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Wins</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Losses</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Win Rate %</th>
+                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Current Streak</th>
                             </tr>
                         </thead>
                         <tbody id="partnershipsTableBody" class="text-gray-100">
-                            <!-- Partnership rows will be dynamically inserted here by playerProfile.js -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
-                <p id="noPartnershipsMessage" class="py-3 px-4 text-center text-sm text-gray-400 hidden">No partnerships to display yet.</p>
+                <p id="noPartnershipsMessage" class="py-3 px-4 text-center text-sm text-gray-400 hidden">No partnerships found yet.</p>
             </section>
 
-            <div class="mt-8 text-center flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <div class="mt-8 text-center hidden flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                 <a id="viewMatchHistoryLink" href="matchHistory.html" class="btn-primary">
                     View All Match History
                 </a>

@@ -72,19 +72,46 @@ const PLAYERS_COLLECTION_PATH = `artifacts/${appId}/public/data/players`;
 const MATCHES_COLLECTION_PATH = `artifacts/${appId}/public/data/matches`;
 
 // --- HELPER FUNCTIONS (MOVED TO GLOBAL SCOPE) ---
+// NEW: Function to initialize or refresh the visual selected state of winner buttons
+function initializeWinnerSelectionStyle() {
+    document.querySelectorAll('.winner-button').forEach(label => {
+        const radio = label.querySelector('input[type="radio"]');
+        if (radio && radio.checked) {
+            label.classList.add('is-selected');
+        } else {
+            label.classList.remove('is-selected');
+        }
+    });
+}
 
-function showMessage(elementId, message, type) {
+function showMessage(elementId, message, type, duration = 0) {
+    console.log(`DEBUG: showMessage received: elementId=${elementId}, message="${message}", type=${type}, duration=${duration}`);
     const displayElement = document.getElementById(elementId);
     if (displayElement) {
+        console.log("DEBUG: displayElement found:", displayElement);
         displayElement.textContent = message;
+        // This line removes all specified classes.
         displayElement.classList.remove('hidden', 'bg-red-800', 'bg-green-800', 'bg-blue-800');
+        console.log("DEBUG: Classes after removal:", displayElement.classList.value);
+
         if (type === 'error') {
-            displayElement.classList.add('bg-red-800');
+            displayElement.classList.add('bg-red-800'); // Adds red
         } else if (type === 'success') {
-            displayElement.classList.add('bg-green-800');
+            displayElement.classList.add('bg-green-800'); // Adds green
         } else { // info
-            displayElement.classList.add('bg-blue-800');
+            displayElement.classList.add('bg-blue-800'); // Adds blue
         }
+        console.log("DEBUG: Final classes:", displayElement.classList.value);
+        console.log("DEBUG: Final textContent:", displayElement.textContent);
+
+        if (duration > 0) {
+            console.log(`DEBUG: Setting timeout to hide message in ${duration}ms.`);
+            setTimeout(() => {
+                hideMessage(elementId);
+            }, duration);
+        }
+    } else {
+        console.error(`DEBUG ERROR: Element with ID "${elementId}" not found for showMessage.`);
     }
 }
 
@@ -108,7 +135,7 @@ async function fetchPlayersFromFirebase() {
         return players;
     } catch (error) {
         console.error("Error fetching players for dropdowns:", error);
-        showMessage('matchErrorMessageDisplay', `Error loading players for dropdowns: ${error.message}`, 'error');
+        showMessage('matchErrorMessageDisplay', `Error loading players for dropdowns: ${error.message}`, 'error', 5000);
         return [];
     }
 }
@@ -156,7 +183,7 @@ async function handleAddNewPlayer(selectElement) {
         
         const currentPlayers = await fetchPlayersFromFirebase(); 
         if (currentPlayers.some(player => player.toLowerCase() === trimmedName.toLowerCase())) {
-            showMessage('matchErrorMessageDisplay', `Player "${trimmedName}" already exists.`, 'error');
+            showMessage('matchErrorMessageDisplay', `Player "${trimmedName}" already exists.`, 'error', 5000);
             selectElement.value = ''; 
             updateMatchFormUI();
             return;
@@ -174,7 +201,7 @@ async function handleAddNewPlayer(selectElement) {
                 longestLosingStreak: 0,
                 avatarUrl: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(trimmedName)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffeedc,f4d15b&size=64`
             });
-            showMessage('matchErrorMessageDisplay', `Player "${trimmedName}" added successfully!`, 'success');
+            showMessage('matchErrorMessageDisplay', `Player "${trimmedName}" added successfully!`, 'success', 5000);
 
             const updatedPlayers = await fetchPlayersFromFirebase();
             populatePlayerDropdowns(updatedPlayers);
@@ -183,7 +210,7 @@ async function handleAddNewPlayer(selectElement) {
 
         } catch (error) {
             console.error("Error adding new player:", error);
-            showMessage('matchErrorMessageDisplay', `Failed to add new player: ${error.message}`, 'error');
+            showMessage('matchErrorMessageDisplay', `Failed to add new player: ${error.message}`, 'error', 5000);
             selectElement.value = ''; 
         }
     } else {
@@ -192,24 +219,30 @@ async function handleAddNewPlayer(selectElement) {
     updateMatchFormUI();
 }
 
-// Function to update the display based on game type selection and player selections
+// MODIFIED: Function to update the display based on game type selection and player selections
 function updateMatchFormUI() {
     const selectedGameType = document.querySelector('input[name="gameType"]:checked').value;
-
+    
     const p1 = player1Input.value;
     const p2 = player2Input.value;
     const p3 = player3Input.value; 
     const p4 = player4Input.value; 
-
+    
     if (selectedGameType === '2v2') {
+        winnerTeam1RadioDiv.classList.remove('hidden');
+        winnerTeam2RadioDiv.classList.remove('hidden');
         team2PlayersContainer.classList.remove('hidden');
         player3Input.disabled = false; 
         player4Input.disabled = false; 
 
         winnerPlayer1RadioDiv.classList.add('hidden');
         winnerPlayer2RadioDiv.classList.add('hidden');
-        winnerTeam1RadioDiv.classList.remove('hidden');
-        winnerTeam2RadioDiv.classList.remove('hidden');
+
+        // MODIFIED: Show scratchWinCheckboxContainer for 2v2
+        if (scratchWinCheckboxContainer) {
+            scratchWinCheckboxContainer.classList.remove('hidden');
+        }
+
     } else { // 1v1
         team2PlayersContainer.classList.add('hidden');
         player3Input.value = '';
@@ -244,22 +277,15 @@ function updateMatchFormUI() {
         }
     }
 
-    if (allPlayersSelected) {
-        if (scratchWinCheckboxContainer) { 
-            scratchWinCheckboxContainer.classList.remove('hidden');
-        }
-    } else {
-        if (scratchWinCheckboxContainer) { 
-            scratchWinCheckboxContainer.classList.add('hidden');
-            // Safe access to scratchWinCheckbox
-            const scratchCheckbox = document.getElementById('scratchWinCheckbox');
-            if (scratchCheckbox) { // Check if the element exists before trying to set its property
-                scratchCheckbox.checked = false; 
-            }
-        }
-    }
+    // MODIFIED: Removed the previous scratchWinCheckboxContainer modification block.
+    // The visibility logic for scratchWinCheckboxContainer is now correctly within the 1v1/2v2 branches above.
+    // The unchecking of the scratch checkbox when players are not all selected for the game type
+    // needs to be handled within this function, possibly at the start or end for consistency.
+    // For now, it's handled within the 1v1 branch when it's hidden.
 
     updateWinnerLabels(); 
+    // NEW: Call to ensure the correct winner button styling is applied after UI updates.
+    initializeWinnerSelectionStyle();
 }
 
 // Function to update winner labels dynamically
@@ -286,92 +312,151 @@ function calculateWinRate(wins, losses) {
 }
 
 function formatDate(timestamp) {
-    if (!timestamp) return 'N/A';
-    if (timestamp.toDate) {
-        const date = timestamp.toDate();
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+    if (!timestamp) {
+        return 'N/A'; // Handle null or undefined
     }
-    if (timestamp instanceof Date) {
-        return timestamp.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+
+    let date;
+    if (typeof timestamp.toDate === 'function') {
+        date = timestamp.toDate();
     }
-    return 'N/A'; 
+    else if (timestamp instanceof Date) {
+        date = timestamp;
+    }
+    else if (typeof timestamp === 'string') {
+        date = new Date(timestamp + 'T00:00:00Z');
+    }
+    else {
+        console.warn('formatDate received an unhandled type for timestamp:', typeof timestamp, timestamp);
+        return 'N/A';
+    }
+    if (date && !isNaN(date.getTime())) { // Check if date is a valid Date object
+        // Use 'en-GB' locale for DD/MM/YYYY format
+        return date.toLocaleDateString('en-GB');
+
+        // Alternatively, for more explicit control (and if you prefer not to rely on locale defaults):
+        /*
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+        */
+    } else {
+        console.error('formatDate: Invalid date object created from timestamp:', timestamp);
+        return 'N/A';
+    }
 }
 
 async function handleAddMatch() {
-    hideMessage('matchErrorMessageDisplay'); 
+    console.log("handleAddMatch called!");
+    hideMessage('matchErrorMessageDisplay'); // Always hide any previous message at the start
 
-    const gameType = document.querySelector('input[name="gameType"]:checked').value;
-    const player1Name = player1Input.value.trim();
-    const player2Name = player2Input.value.trim();
-    const player3Name = player3Input.value.trim(); 
-    const player4Name = player4Input.value.trim(); 
-    const matchDate = matchDateInput.value;
-
-    if (player1Name === 'ADD_NEW_PLAYER' || player2Name === 'ADD_NEW_PLAYER' ||
-        (gameType === '2v2' && (player3Name === 'ADD_NEW_PLAYER' || player4Name === 'ADD_NEW_PLAYER'))) {
-        showMessage('matchErrorMessageDisplay', 'Please select existing players or add new players before submitting a match.', 'error');
-        return;
+    // Get game type first, as it dictates other requirements
+    const checkedGameTypeRadio = document.querySelector('input[name="gameType"]:checked');
+    if (!checkedGameTypeRadio) {
+        showMessage('matchErrorMessageDisplay', 'Please select a game type (1v1 or 2v2).', 'error', 5000);
+        console.error("Error: No game type selected.");
+        return; // Exit if game type is not selected
     }
+    const gameType = checkedGameTypeRadio.value;
+    console.log("Game Type:", gameType);
+
+    // USE the globally declared playerInput variables directly:
+    const player1Name = player1Input ? player1Input.value.trim() : '';
+    const player2Name = player2Input ? player2Input.value.trim() : '';
+    const player3Name = player3Input ? player3Input.value.trim() : '';
+    const player4Name = player4Input ? player4Input.value.trim() : '';
+    const matchDate = matchDateInput ? matchDateInput.value : ''; // Assuming matchDateInput is globally assigned or needs to be retrieved here.
+
+    console.log("Player 1 Name:", player1Name);
+    console.log("Player 2 Name:", player2Name);
+    console.log("Player 3 Name:", player3Name); // Will be '' for 1v1 if not present
+    console.log("Player 4 Name:", player4Name); // Will be '' for 1v1 if not present
+    console.log("Match Date:", matchDate);
+
+    // --- CONSOLIDATED BASIC FIELD VALIDATION ---
+    let missingFields = [];
+
+    // Check Player 1 and Player 2 for any game type
+    // The 'ADD_NEW_PLAYER' value from a dropdown indicates an incomplete selection
+    if (!player1Name || player1Name === 'ADD_NEW_PLAYER') {
+        missingFields.push('Player 1');
+    }
+    if (!player2Name || player2Name === 'ADD_NEW_PLAYER') {
+        missingFields.push('Player 2');
+    }
+
+    // Check Player 3 and Player 4 only if game type is 2v2
+    if (gameType === '2v2') {
+        if (!player3Name || player3Name === 'ADD_NEW_PLAYER') {
+            missingFields.push('Player 3');
+        }
+        if (!player4Name || player4Name === 'ADD_NEW_PLAYER') {
+            missingFields.push('Player 4');
+        }
+    }
+
+    // Check Match Date
+    if (!matchDate) {
+        missingFields.push('Match Date');
+    }
+
+    // If any fields are missing, display a comprehensive error message
+    if (missingFields.length > 0) {
+        let errorMessage = 'Please fill in all required fields: ' + missingFields.join(', ') + '.';
+        console.log("DEBUG: Validation failed. Attempting to show error message:", errorMessage); // <-- ADD THIS LOG
+        showMessage('matchErrorMessageDisplay', errorMessage, 'error', 5000);
+        console.log("DEBUG: showMessage called. Returning from handleAddMatch."); // <-- ADD THIS LOG
+        return; // Stop function execution if basic fields are missing
+    }
+    // --- END CONSOLIDATED BASIC FIELD VALIDATION ---
+
+    // Now proceed with more specific logical validations,
+    // assuming all basic fields are filled and valid (not 'ADD_NEW_PLAYER')
 
     let winnerName, loserName;
     let team1Players = [];
     let team2Players = [];
     let winningTeam, losingTeam;
 
-    if (!player1Name || !player2Name || !matchDate) {
-        showMessage('matchErrorMessageDisplay', 'Player 1, Player 2, and Match Date are required.', 'error');
-        return;
-    }
-
     if (gameType === '1v1') {
-        const selectedWinnerRadio = document.querySelector('input[name="winner"]:checked');
-        
-        if (!selectedWinnerRadio) {
-            showMessage('matchErrorMessageDisplay', 'Please select a winner.', 'error');
-            return;
-        }
-        
-        if (selectedWinnerRadio.value !== 'player1' && selectedWinnerRadio.value !== 'player2') {
-            showMessage('matchErrorMessageDisplay', 'Invalid winner selection for 1v1 game type. Please re-select.', 'error');
+        // Player names cannot be the same in 1v1
+        if (player1Name === player2Name) {
+            showMessage('matchErrorMessageDisplay', 'Player 1 and Player 2 cannot be the same in 1v1.', 'error', 5000);
             return;
         }
 
-        if (player1Name === player2Name) {
-            showMessage('matchErrorMessageDisplay', 'Player 1 and Player 2 cannot be the same in 1v1.', 'error');
+        const selectedWinnerRadio = document.querySelector('input[name="winner"]:checked');
+        if (!selectedWinnerRadio) {
+            showMessage('matchErrorMessageDisplay', 'Please select a winner for the 1v1 match.', 'error', 5000);
             return;
         }
+
+        if (selectedWinnerRadio.value !== 'player1' && selectedWinnerRadio.value !== 'player2') {
+            showMessage('matchErrorMessageDisplay', 'Invalid winner selection for 1v1 game type. Please re-select.', 'error', 5000);
+            return;
+        }
+
         winnerName = selectedWinnerRadio.value === 'player1' ? player1Name : player2Name;
         loserName = selectedWinnerRadio.value === 'player1' ? player2Name : player1Name;
 
     } else { // 2v2
-        if (!player3Name || !player4Name) {
-            showMessage('matchErrorMessageDisplay', 'All four player names are required for 2v2.', 'error');
-            return;
-        }
+        // All four players must be unique for 2v2
         const allPlayers = [player1Name, player2Name, player3Name, player4Name];
         const uniquePlayers = new Set(allPlayers);
         if (uniquePlayers.size !== 4) {
-            showMessage('matchErrorMessageDisplay', 'All four players must be unique for 2v2.', 'error');
+            showMessage('matchErrorMessageDisplay', 'All four players must be unique for 2v2.', 'error', 5000);
             return;
         }
 
         const selectedWinnerRadio = document.querySelector('input[name="winner"]:checked');
-        
         if (!selectedWinnerRadio) {
-            showMessage('matchErrorMessageDisplay', 'Please select a winning team.', 'error');
+            showMessage('matchErrorMessageDisplay', 'Please select a winning team for the 2v2 match.', 'error', 5000);
             return;
         }
 
         if (selectedWinnerRadio.value !== 'team1' && selectedWinnerRadio.value !== 'team2') {
-            showMessage('matchErrorMessageDisplay', 'Invalid winner selection for 2v2 game type. Please re-select.', 'error');
+            showMessage('matchErrorMessageDisplay', 'Invalid winner selection for 2v2 game type. Please re-select.', 'error', 5000);
             return;
         }
 
@@ -387,16 +472,18 @@ async function handleAddMatch() {
         }
     }
 
+    // If we reach here, all initial and specific validations passed.
+    // Proceed with Firebase operations.
     try {
         const batch = writeBatch(db);
         const playersToUpdate = new Set();
-        const matchId = doc(collection(db, MATCHES_COLLECTION_PATH)).id; 
+        const matchId = doc(collection(db, MATCHES_COLLECTION_PATH)).id;
 
         let matchData = {
             date: matchDate,
             gameType: gameType,
             timestamp: serverTimestamp(),
-            players: [], 
+            players: [],
             winner: null,
             loser: null,
             winningTeam: [],
@@ -409,7 +496,7 @@ async function handleAddMatch() {
             matchData.winner = winnerName;
             matchData.loser = loserName;
             matchData.players = [winnerName, loserName];
-        } else { 
+        } else {
             winningTeam.forEach(p => playersToUpdate.add(p));
             losingTeam.forEach(p => playersToUpdate.add(p));
             matchData.winningTeam = winningTeam;
@@ -426,14 +513,14 @@ async function handleAddMatch() {
             if (playerDoc.exists()) {
                 playersData.set(playerName, playerDoc.data());
             } else {
-                playersData.set(playerName, { 
+                playersData.set(playerName, {
                     name: playerName,
                     wins1v1: 0, losses1v1: 0, games1v1: 0, winRate1v1: 0,
                     wins2v2: 0, losses2v2: 0, games2v2: 0, winRate2v2: 0,
                     totalWins: 0, totalLosses: 0, totalGamesPlayed: 0, overallWinRate: 0,
-                    currentStreak: 0, 
-                    longestWinStreak: 0, 
-                    longestLosingStreak: 0, 
+                    currentStreak: 0,
+                    longestWinStreak: 0,
+                    longestLosingStreak: 0,
                     avatarUrl: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(playerName)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffeedc,f4d15b&size=64`
                 });
                 batch.set(playerRef, playersData.get(playerName));
@@ -448,38 +535,38 @@ async function handleAddMatch() {
             let newLosses1v1 = currentData.losses1v1;
             let newWins2v2 = currentData.wins2v2;
             let newLosses2v2 = currentData.losses2v2;
-            let newCurrentStreak = currentData.currentStreak || 0; 
-            let newLongestWinStreak = currentData.longestWinStreak || 0; 
-            let newLongestLosingStreak = currentData.longestLosingStreak || 0; 
+            let newCurrentStreak = currentData.currentStreak || 0;
+            let newLongestWinStreak = currentData.longestWinStreak || 0;
+            let newLongestLosingStreak = currentData.longestLosingStreak || 0;
 
             if (gameType === '1v1') {
                 if (playerName === winnerName) {
                     newWins1v1++;
-                    newCurrentStreak = (newCurrentStreak < 0 ? 0 : newCurrentStreak) + 1; 
-                } else { 
+                    newCurrentStreak = (newCurrentStreak < 0 ? 0 : newCurrentStreak) + 1;
+                } else {
                     newLosses1v1++;
                     newCurrentStreak = (newCurrentStreak > 0 ? 0 : newCurrentStreak) - 1;
                 }
-            } else { 
+            } else {
                 if (winningTeam.includes(playerName)) {
                     newWins2v2++;
                     newCurrentStreak = (newCurrentStreak < 0 ? 0 : newCurrentStreak) + 1;
-                } else { 
+                } else {
                     newLosses2v2++;
                     newCurrentStreak = (newCurrentStreak > 0 ? 0 : newCurrentStreak) - 1;
                 }
             }
 
-            if (newCurrentStreak > 0) { 
+            if (newCurrentStreak > 0) {
                 if (newCurrentStreak > newLongestWinStreak) {
                     newLongestWinStreak = newCurrentStreak;
                 }
-            } else if (newCurrentStreak < 0) { 
+            } else if (newCurrentStreak < 0) {
                 if (Math.abs(newCurrentStreak) > newLongestLosingStreak) {
                     newLongestLosingStreak = Math.abs(newCurrentStreak);
                 }
             }
-            
+
             const newGames1v1 = newWins1v1 + newLosses1v1;
             const newWinRate1v1 = calculateWinRate(newWins1v1, newLosses1v1);
 
@@ -507,9 +594,9 @@ async function handleAddMatch() {
                 currentStreak: newCurrentStreak,
                 longestWinStreak: newLongestWinStreak,
                 longestLosingStreak: newLongestLosingStreak,
-                lastPlayed: serverTimestamp()
+                lastPlayed: matchData.date
             });
-            
+
             if (gameType === '1v1') {
                 const opponentName = (playerName === winnerName) ? loserName : winnerName;
                 if (opponentName) {
@@ -517,9 +604,9 @@ async function handleAddMatch() {
                     batch.set(rivalryDocRef, {
                         wins: increment(playerName === winnerName ? 1 : 0),
                         losses: increment(playerName === loserName ? 1 : 0)
-                    }, { merge: true }); 
+                    }, { merge: true });
                 }
-            } else { 
+            } else {
                 const currentTeam = winningTeam.includes(playerName) ? winningTeam : losingTeam;
                 const opposingTeam = winningTeam.includes(playerName) ? losingTeam : winningTeam;
 
@@ -542,8 +629,10 @@ async function handleAddMatch() {
         }
 
         await batch.commit();
-        showMessage('matchErrorMessageDisplay', 'Match added successfully and player stats updated!', 'success');
+        // Call showMessage with duration for success message
+        showMessage('matchErrorMessageDisplay', 'Match added successfully and player stats updated!', 'success', 5000); // Display for 5 seconds
 
+        // Clear inputs after successful submission
         player1Input.value = '';
         player2Input.value = '';
         player3Input.value = '';
@@ -554,16 +643,16 @@ async function handleAddMatch() {
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
         matchDateInput.value = `${year}-${month}-${day}`;
-        
+
         document.querySelectorAll('input[name="winner"]').forEach(radio => {
             radio.checked = false;
         });
 
-        updateWinnerLabels(); 
-        await fetchAndRenderLeaderboard(); 
+        updateWinnerLabels();
+        await fetchAndRenderLeaderboard();
     } catch (error) {
         console.error("Error adding match or updating player stats:", error);
-        showMessage('matchErrorMessageDisplay', `Error adding match: ${error.message}`, 'error');
+        showMessage('matchErrorMessageDisplay', `Error adding match: ${error.message}`, 'error', 5000);
     }
 }
 
@@ -691,33 +780,48 @@ async function clearAllDataConfirmed() {
 
         const playerDocs = await getDocs(playersRef);
         const playerBatch = writeBatch(db);
+
+        // --- Step 1: Delete Rivalries Subcollections for each player ---
+        // This is necessary because deleting a parent document does not delete its subcollections
+        for (const playerDoc of playerDocs.docs) { // Iterate over player documents
+            const rivalrySubcollectionRef = collection(db, PLAYERS_COLLECTION_PATH, playerDoc.id, 'rivalries'); // Assuming 'rivalries' is the subcollection name
+            const rivalryDocs = await getDocs(rivalrySubcollectionRef);
+
+            // Add each rivalry document to the current batch for deletion
+            rivalryDocs.forEach(rivalryDoc => {
+                playerBatch.delete(rivalryDoc.ref);
+            });
+            console.log(`Rivalries for player ${playerDoc.id} added to batch for deletion.`);
+        }
+        
+        // --- Step 2: Delete Player Documents themselves ---
         playerDocs.forEach(doc => {
             playerBatch.delete(doc.ref);
         });
+        
+        // Commit the batch containing both rivalries and player document deletions
         await playerBatch.commit();
-        console.log("All player data deleted.");
+        console.log("All player data (including rivalries) deleted.");
 
+        // --- Delete Match Documents (remains the same) ---
         const matchDocs = await getDocs(matchesRef);
-        const matchBatch = writeBatch(db);
+        const matchBatch = writeBatch(db); // Create a new batch for matches or add to the existing if size permits
         matchDocs.forEach(doc => {
             matchBatch.delete(doc.ref);
         });
         await matchBatch.commit();
         console.log("All match data deleted.");
 
-        showMessage('clearDataMessage', 'All leaderboard data has been successfully cleared.', 'success');
-        await fetchAndRenderLeaderboard(); 
+        showMessage('clearDataMessage', 'All leaderboard data has been successfully cleared.', 'success', 3000);
+        await fetchAndRenderLeaderboard();
         const playersAfterClear = await fetchPlayersFromFirebase();
         populatePlayerDropdowns(playersAfterClear);
     } catch (error) {
         console.error("Error clearing all data:", error);
-        showMessage('matchErrorMessageDisplay', `Error clearing data: ${error.message}`, 'error'); 
+        showMessage('matchErrorMessageDisplay', `Error clearing data: ${error.message}`, 'error',);
     } finally {
-        if (clearConfirmationMessage) { 
+        if (clearConfirmationMessage) {
             clearConfirmationMessage.classList.add('hidden');
-        }
-        if (clearDataMessage) { 
-            clearDataMessage.textContent = ''; 
         }
         confirmClearButton.disabled = false;
         cancelClearButton.disabled = false;
@@ -738,7 +842,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOMContentLoaded fired.");
 
     // --- ASSIGNMENTS TO ELEMENT REFERENCES ---
-    // All these assignments MUST be inside DOMContentLoaded
+    // (All your existing assignments here are correct and should remain)
     gameTypeRadios = document.querySelectorAll('input[name="gameType"]');
     team1PlayersContainer = document.getElementById('team1PlayersContainer'); 
     team2PlayersContainer = document.getElementById('team2PlayersContainer'); 
@@ -749,7 +853,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     player4Input = document.getElementById('player4'); 
     matchDateInput = document.getElementById('matchDate');
 
-    scratchWinCheckboxContainer = document.getElementById('scratchWinCheckboxContainer'); // Ensure this ID exists in HTML
+    scratchWinCheckboxContainer = document.getElementById('scratchWinCheckboxContainer');
 
     winnerSelectionDiv = document.getElementById('winnerSelection');
     winnerPlayer1RadioDiv = document.getElementById('winner_player1_radio_div'); 
@@ -798,6 +902,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             await fetchAndRenderLeaderboard();
             const players = await fetchPlayersFromFirebase(); 
             populatePlayerDropdowns(players); 
+            
+            // --- ADD THIS LINE: Update labels AFTER dropdowns are populated ---
+            updateWinnerLabels(); 
         } else {
             try {
                 await signInAnonymously(auth);
@@ -818,17 +925,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (event.target.value === 'ADD_NEW_PLAYER') {
                 handleAddNewPlayer(event.target);
             } else {
-                updateMatchFormUI();
+                updateMatchFormUI(); // This will call updateWinnerLabels() when a player is manually changed
             }
         });
     });
 
-    addMatchButton.addEventListener('click', handleAddMatch);
+    addMatchButton.addEventListener('click', handleAddMatch); // handleAddMatch also calls updateWinnerLabels()
 
     clearAllDataButton.addEventListener('click', initiateClearAllData);
     confirmClearButton.addEventListener('click', clearAllDataConfirmed); 
     cancelClearButton.addEventListener('click', cancelClearAllData); 
 
     // Initial display update based on default selections
+    // This initial call will likely set 'Player 1' placeholders,
+    // but the call inside onAuthStateChanged will correct it later.
     updateMatchFormUI(); 
 });

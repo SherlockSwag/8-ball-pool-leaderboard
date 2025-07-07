@@ -78,13 +78,13 @@
         <div class="flex flex-col gap-y-4">
             <!-- Date Input -->
             <div class="mb-4">
-                <label for="matchDate" class="block text-gray-300 text-sm font-bold mb-2">Match Date:</label>
-                <input type="date" id="matchDate" class="shadow-sm appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10">
+                <label for="matchDate" class="block text-gray-300 text-xl font-bold mb-2">Match Date:</label>
+                <input type="date" id="matchDate" class="text-xl shadow-sm appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10">
             </div>
             <!-- Game Type Selection -->
             <div>
-                <label class="block text-gray-300 text-sm font-bold mb-2">Game Type:</label>
-                <div class="flex space-x-4">
+                <label class="block text-gray-300 text-xl font-bold mb-2">Game Type:</label>
+                <div class="flex space-x-4 text-xl">
                     <label class="inline-flex items-center cursor-pointer">
                         <input type="radio" name="gameType" value="1v1" class="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer" checked>
                         <span class="ml-2 text-gray-200">1v1</span>
@@ -102,14 +102,14 @@
                     <h3 class="text-lg font-semibold text-blue-300 mb-3">Team 1 Players:</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex flex-col">
-                            <label for="player1" class="block text-gray-300 text-sm font-bold mb-1">Player 1:</label>
+                            <label for="player1" class="block text-gray-300 text-xl font-bold mb-1">Player 1:</label>
                             <select id="player1" class="shadow-sm border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10">
                                 <option value="">Select Player</option>
                                 <option value="ADD_NEW_PLAYER">-- Add New Player --</option>
                                 </select>
                         </div>
                         <div class="flex flex-col">
-                            <label for="player2" class="block text-gray-300 text-sm font-bold mb-1">Player 2:</label>
+                            <label for="player2" class="block text-gray-300 text-xl font-bold mb-1">Player 2:</label>
                             <select id="player2" class="shadow-sm border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10">
                                 <option value="">Select Player</option>
                                 <option value="ADD_NEW_PLAYER">-- Add New Player --</option>
@@ -122,14 +122,14 @@
                     <h3 class="text-lg font-semibold text-green-300 mb-3">Team 2 Players:</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex flex-col">
-                            <label for="player3" class="block text-gray-300 text-sm font-bold mb-1">Player 3:</label>
+                            <label for="player3" class="block text-gray-300 text-xl font-bold mb-1">Player 3:</label>
                             <select id="player3" class="shadow-sm border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent h-10">
                                 <option value="">Select Player</option>
                                 <option value="ADD_NEW_PLAYER">-- Add New Player --</option>
                                 </select>
                         </div>
                         <div class="flex flex-col">
-                            <label for="player4" class="block text-gray-300 text-sm font-bold mb-1">Player 4:</label>
+                            <label for="player4" class="block text-gray-300 text-xl font-bold mb-1">Player 4:</label>
                             <select id="player4" class="shadow-sm border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent h-10">
                                 <option value="">Select Player</option>
                                 <option value="ADD_NEW_PLAYER">-- Add New Player --</option>
@@ -140,48 +140,99 @@
             </div>
 
             <!-- Winner Selection -->
-            <div class="mt-2">
-                <label class="block text-gray-300 text-sm font-bold mb-2">Winner(s):</label>
-                <div id="winnerSelection" class="flex flex-col space-y-2">
-                    <!-- 1v1 Winner Options -->
-                    <label class="inline-flex items-center cursor-pointer" id="winner_player1_radio_div">
-                        <input type="radio" name="winner" value="player1" class="form-radio h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer" checked>
-                        <span id="winner_player1_label" class="ml-2 text-gray-200">Player 1</span>
-                    </label>
-                    <label class="inline-flex items-center cursor-pointer" id="winner_player2_radio_div">
-                        <input type="radio" name="winner" value="player2" class="form-radio h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer">
-                        <span id="winner_player2_label" class="ml-2 text-gray-200">Player 2</span>
-                    </label>
-                    <!-- 2v2 Winner Options (initially hidden) -->
-                    <label class="inline-flex items-center cursor-pointer hidden" id="winner_team1_radio_div">
-                        <input type="radio" name="winner" value="team1" class="form-radio h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer">
-                        <span class="ml-2 text-gray-200">Team 1 (<span id="team1_player1_label">Player 1</span> & <span id="team1_player2_label">Player 2</span>)</span>
-                    </label>
-                    <label class="inline-flex items-center cursor-pointer hidden" id="winner_team2_radio_div">
-                        <input type="radio" name="winner" value="team2" class="form-radio h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer">
-                        <span class="ml-2 text-gray-200">Team 2 (<span id="team2_player3_label">Player 3</span> & <span id="team2_player4_label">Player 4</span>)</span>
-                    </label>
+            <div class="mt-2 grid grid-cols-5 gap-5 items-start">
+                <div class="col-span-3 flex flex-col">
+                    <label class="block text-gray-300 text-xl font-bold mb-2">Winner(s):</label>
+                    <div id="winnerSelection" class="flex flex-col text-xl">
+
+                        <label id="winner_player1_radio_div" class="winner-button
+                            /* NEW CLASS for easy selection */
+                            flex items-center justify-center
+                            text-xl
+                            h-10             /* Square dimensions, adjust w-X h-X as needed */
+                            border-2 border-gray-600 rounded-lg /* Border for the button look */
+                            bg-gray-700 text-gray-200 /* Default background and text color */
+                            font-semibold cursor-pointer select-none
+                            transition-all duration-200 ease-in-out
+                            hover:border-blue-400 hover:bg-gray-600
+                            active:scale-95
+                            mb-4
+                        ">
+                            <input type="radio" name="winner" value="player1" class="sr-only">
+                            <span id="winner_player1_label" class="text-center">Player 1</span>
+                        </label>
+
+                        <label id="winner_player2_radio_div" class="winner-button
+                            /* NEW CLASS */
+                            flex items-center justify-center
+                            h-10
+                            border-2 border-gray-600 rounded-lg
+                            bg-gray-700 text-gray-200
+                            font-semibold cursor-pointer select-none
+                            transition-all duration-200 ease-in-out
+                            hover:border-blue-400 hover:bg-gray-600
+                            active:scale-95
+                        ">
+                            <input type="radio" name="winner" value="player2" class="sr-only">
+                            <span id="winner_player2_label" class="text-center">Player 2</span>
+                        </label>
+
+                        <label id="winner_team1_radio_div" class="winner-button
+                            /* NEW CLASS */
+                            flex items-center justify-center
+                            h-10
+                            border-2 border-gray-600 rounded-lg
+                            bg-gray-700 text-gray-200
+                            font-semibold cursor-pointer select-none
+                            transition-all duration-200 ease-in-out
+                            hover:border-blue-400 hover:bg-gray-600
+                            active:scale-95
+                            mb-4
+                            hidden /* Keep initial hidden from original */
+                        ">
+                            <input type="radio" name="winner" value="team1" class="sr-only">
+                            <span class="text-center"><span id="team1_player1_label">Player 1</span> & <span id="team1_player2_label">Player 2</span></span>
+                        </label>
+
+                        <label id="winner_team2_radio_div" class="winner-button
+                            flex items-center justify-center
+                            h-10
+                            py-2
+                            border-2 border-gray-600 rounded-lg
+                            bg-gray-700 text-gray-200
+                            font-semibold cursor-pointer select-none
+                            transition-all duration-200 ease-in-out
+                            hover:border-blue-400 hover:bg-gray-600
+                            active:scale-95
+                            hidden /* Keep initial hidden from original */
+                        ">
+                            <input type="radio" name="winner" value="team2" class="sr-only">
+                            <span class="text-center"><span id="team2_player3_label">Player 3</span> & <span id="team2_player4_label">Player 4</span></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-span-2 flex flex-col">
+                    <label class="block text-gray-300 text-xl font-bold mb-2">Ball(s) Left:</label>
+                    <div class="flex flex-col text-xl">
+                        <div>
+                            <input type="number" id="ballsLeftPlayer1" min="0" max="7" class="h-10 shadow appearance-none border rounded w-full py-2 px-3 text-white-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-500 mb-4" placeholder="e.g., 4">
+                        </div>
+                        <div>
+                            <input type="number" id="ballsLeftPlayer2" min="0" max="7" class="h-10 shadow appearance-none border rounded w-full py-2 px-3 text-white-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-500" placeholder="e.g., 0">
+                        </div>
+                    </div>
                 </div>
             </div>
+
 
             <!--New Information-->
-            <div id="scratchWinCheckboxContainer" class="mb-4 hidden"> <input type="checkbox" id="isScratchWin" class="mr-2 leading-tight">
-                <label for="isScratchWin" class="text-sm text-gray-300 font-bold">Won by 8-Ball Scratch?</label>
-            </div>
-
-            <div class="mb-4 flex flex-col md:flex-row gap-4">
-                <div class="flex-1">
-                    <label for="ballsLeftPlayer1" id="labelBallsLeftPlayer1" class="block text-gray-300 text-sm font-bold mb-2">Balls Left (Player/Team 1):</label>
-                    <input type="number" id="ballsLeftPlayer1" min="0" max="7" class="shadow appearance-none border rounded w-full py-2 px-3 text-white-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-500" placeholder="e.g., 4">
-                </div>
-                <div class="flex-1">
-                    <label for="ballsLeftPlayer2" id="labelBalls-LeftPlayer2" class="block text-gray-300 text-sm font-bold mb-2">Balls Left (Player/Team 2):</label>
-                    <input type="number" id="ballsLeftPlayer2" min="0" max="7" class="shadow appearance-none border rounded w-full py-2 px-3 text-white-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-500" placeholder="e.g., 0">
-                </div>
+            <div id="scratchWinCheckboxContainer" class="mb-4"> <input type="checkbox" id="isScratchWin" class="mr-2 leading-tight">
+                <label for="isScratchWin" class="text-xl text-gray-300 font-bold">Won by 8-Ball Scratch?</label>
             </div>
 
             <div class="mb-4">
-                <label for="remarks" class="block text-gray-300 text-sm font-bold mb-2">Remarks:</label>
+                <label for="remarks" class="block text-gray-300 text-xl font-bold mb-2">Comments:</label>
                 <textarea id="remarks" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-500" placeholder="e.g., 'Close game!', 'New cue stick used.'"></textarea>
             </div>
 
@@ -189,14 +240,14 @@
             <button id="addMatchButton" class="mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
                 Add Match
             </button>
-            <div id="matchErrorMessage" class="mt-4 p-3 rounded-lg text-sm hidden bg-red-700 text-white"></div>
+            <div id="matchErrorMessageDisplay" class="mt-4 p-3 rounded-lg text-xl hidden text-white"></div>
         </div>
     </div>
 
     <!-- Admin/Testing Controls -->
     <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-2xl mb-8 flex flex-col items-center">
         <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Admin Controls (For Testing)</h2>
-        <button id="clearAllDataButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
+        <button id="clearAllDataButton" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
             Clear All Leaderboard Data
         </button>
         <div id="clearConfirmationMessage" class="mt-4 p-4 rounded-lg bg-yellow-700 text-white hidden flex-col items-center space-y-3 min-h-[8rem] border border-yellow-800">

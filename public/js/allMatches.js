@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Firebase
     try {
         if (!finalFirebaseConfig || !finalFirebaseConfig.projectId) {
-            throw new Error("Firebase configuration 'projectId' is missing. Cannot initialize Firebase.");
+            throw new new Error("Firebase configuration 'projectId' is missing. Cannot initialize Firebase.");
         }
         const app = initializeApp(finalFirebaseConfig);
         db = getFirestore(app);
@@ -105,20 +105,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         matchesToRender.forEach(match => {
-            let matchDate;
-            if (match.timestamp && typeof match.timestamp.toDate === 'function') {
-                matchDate = match.timestamp.toDate();
-            } else if (match.timestamp instanceof Date) {
-                matchDate = match.timestamp;
-            } else if (typeof match.timestamp === 'number') {
-                matchDate = new Date(match.timestamp);
+            // Determine the display date from match.date string
+            let displayDate = 'N/A';
+            if (match.date && typeof match.date === 'string') {
+                const parsedDate = new Date(match.date + 'T00:00:00'); // Add T00:00:00 to ensure UTC interpretation and avoid timezone issues
+                if (!isNaN(parsedDate.getTime())) {
+                    displayDate = parsedDate.toLocaleDateString('en-GB'); // Changed to DD/MM/YYYY format
+                } else {
+                    console.warn('Invalid date string in match.date:', match.date);
+                }
             } else {
-                matchDate = null; 
-                console.warn('Unexpected timestamp format for match:', match);
+                 console.warn('Match object missing "date" field or invalid format for date string for date display:', match);
             }
 
-            const date = matchDate ? matchDate.toLocaleDateString() : 'N/A';
-            const time = matchDate ? matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+            // Determine the display time from match.timestamp
+            let displayTime = 'N/A';
+            let timestampDateObject; // A Date object derived from match.timestamp
+            if (match.timestamp) {
+                if (typeof match.timestamp.toDate === 'function') {
+                    // Firebase Timestamp object
+                    timestampDateObject = match.timestamp.toDate();
+                } else if (match.timestamp instanceof Date) {
+                    // Already a Date object
+                    timestampDateObject = match.timestamp;
+                } else if (typeof match.timestamp === 'number') {
+                    // Unix timestamp number
+                    timestampDateObject = new Date(match.timestamp);
+                } else {
+                    console.warn('Unexpected timestamp format for match.timestamp for time extraction:', match.timestamp);
+                }
+
+                if (timestampDateObject && !isNaN(timestampDateObject.getTime())) {
+                    displayTime = timestampDateObject.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+            } else {
+                console.warn('Match object missing "timestamp" field for time extraction:', match);
+            }
+
             const gameType = match.gameType ? match.gameType.toUpperCase() : 'N/A';
             
             let winners = 'N/A';
@@ -134,8 +157,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const row = `
                 <tr class="border-b border-gray-200 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500">
-                    <td class="py-2 px-4 text-sm text-gray-200">${date}</td>
-                    <td class="py-2 px-4 text-sm text-gray-200">${time}</td>
+                    <td class="py-2 px-4 text-sm text-gray-200">${displayDate}</td>
+                    <td class="py-2 px-4 text-sm text-gray-200">${displayTime}</td>
                     <td class="py-2 px-4 text-sm text-gray-200">${gameType}</td>
                     <td class="py-2 px-4 text-sm text-green-300 font-semibold">${winners}</td>
                     <td class="py-2 px-4 text-sm text-red-300 font-semibold">${losers}</td>

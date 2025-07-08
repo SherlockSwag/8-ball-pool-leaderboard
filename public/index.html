@@ -71,6 +71,30 @@
         </table>
     </div>
 
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-7xl mb-8 mt-2">
+        <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Recent Matches</h2>
+        <div id="latestMatchesErrorMessage" class="mt-4 p-3 rounded-lg text-sm hidden bg-red-700 text-white"></div>
+        <table class="min-w-full bg-gray-700 rounded-lg shadow-xl overflow-hidden">
+            <thead>
+                <tr class="bg-gray-600">
+                    <th class="py-3 px-4 text-left text-l font-semibold text-gray-200 border-r border-gray-500">Date</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200 border-r border-gray-500">Time</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200 border-r border-gray-500">Type</th>
+                    <th class="py-3 px-4 text-left text-l font-semibold text-gray-200 border-r border-gray-500">Winner</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200 border-r border-gray-500">Balls Potted (W)</th>
+                    <th class="py-3 px-4 text-left text-l font-semibold text-gray-200 border-r border-gray-500">Loser</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200 border-r border-gray-500">Balls Potted (L)</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200">Scratch Win</th>
+                </tr>
+            </thead>
+            <tbody id="latestMatchesTableBody">
+                <tr>
+                    <td colspan="8" class="py-3 px-4 text-center text-sm text-gray-400">Loading latest matches...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
     <!-- Match Tracker Section -->
     <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-2xl mb-8">
         <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Add New Match</h2>
@@ -188,7 +212,7 @@
                             hover:border-blue-400 hover:bg-gray-600
                             active:scale-95
                             mb-4
-                            hidden /* Keep initial hidden from original */
+                            hidden
                         ">
                             <input type="radio" name="winner" value="team1" class="sr-only">
                             <span class="text-center"><span id="team1_player1_label">Player 1</span> & <span id="team1_player2_label">Player 2</span></span>
@@ -204,7 +228,7 @@
                             transition-all duration-200 ease-in-out
                             hover:border-blue-400 hover:bg-gray-600
                             active:scale-95
-                            hidden /* Keep initial hidden from original */
+                            hidden
                         ">
                             <input type="radio" name="winner" value="team2" class="sr-only">
                             <span class="text-center"><span id="team2_player3_label">Player 3</span> & <span id="team2_player4_label">Player 4</span></span>

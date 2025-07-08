@@ -1,7 +1,7 @@
 // leaderboard.js
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-import { getFirestore, doc, setDoc, collection, query, getDocs, increment, writeBatch, deleteDoc, getDoc,serverTimestamp,orderBy} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+import { getFirestore, doc, setDoc, collection, query, getDocs, increment, writeBatch, deleteDoc, getDoc,serverTimestamp,orderBy,limit} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 import { firebaseConfig as localFirebaseConfig } from './firebase-config.js'; 
 
 let db;
@@ -44,6 +44,12 @@ let confirmClearButton;
 let cancelClearButton; 
 let clearDataMessage;
 let scratchWinCheckboxContainer; // Global declaration for this container
+let isScratchWinCheckbox; // NEW: for the scratch win checkbox
+let remarksInput; // NEW: for the remarks textarea
+let ballsLeftPlayer1Input; // NEW: for balls left player 1
+let ballsLeftPlayer2Input; // NEW: for balls left player 2
+let latestMatchesTableBody; // NEW: for the latest matches table body
+let latestMatchesErrorMessage; // NEW: for latest matches error message
 
 // Determine the final firebaseConfig to use: Canvas-provided or local fallback
 let finalFirebaseConfig = {};
@@ -238,10 +244,9 @@ function updateMatchFormUI() {
         winnerPlayer1RadioDiv.classList.add('hidden');
         winnerPlayer2RadioDiv.classList.add('hidden');
 
-        // MODIFIED: Show scratchWinCheckboxContainer for 2v2
-        if (scratchWinCheckboxContainer) {
-            scratchWinCheckboxContainer.classList.remove('hidden');
-        }
+        // Ensure balls left inputs are visible for 2v2 (do not hide)
+        if (ballsLeftPlayer1Input) ballsLeftPlayer1Input.parentNode.classList.remove('hidden');
+        if (ballsLeftPlayer2Input) ballsLeftPlayer2Input.parentNode.classList.remove('hidden');
 
     } else { // 1v1
         team2PlayersContainer.classList.add('hidden');
@@ -254,6 +259,10 @@ function updateMatchFormUI() {
         winnerPlayer2RadioDiv.classList.remove('hidden');
         winnerTeam1RadioDiv.classList.add('hidden');
         winnerTeam2RadioDiv.classList.add('hidden');
+
+        // Ensure balls left inputs are visible for 1v1 (do not hide)
+        if (ballsLeftPlayer1Input) ballsLeftPlayer1Input.parentNode.classList.remove('hidden');
+        if (ballsLeftPlayer2Input) ballsLeftPlayer2Input.parentNode.classList.remove('hidden');
     }
 
     let allPlayersSelected = false;
@@ -275,16 +284,12 @@ function updateMatchFormUI() {
             if (winnerTeam1Radio) winnerTeam1Radio.checked = false;
             if (winnerTeam2Radio) winnerTeam2Radio.checked = false;
         }
+        // Always clear values when switching to 2v2, even if inputs are visible
+        if (ballsLeftPlayer1Input) ballsLeftPlayer1Input.value = '';
+        if (ballsLeftPlayer2Input) ballsLeftPlayer2Input.value = '';
     }
-
-    // MODIFIED: Removed the previous scratchWinCheckboxContainer modification block.
-    // The visibility logic for scratchWinCheckboxContainer is now correctly within the 1v1/2v2 branches above.
-    // The unchecking of the scratch checkbox when players are not all selected for the game type
-    // needs to be handled within this function, possibly at the start or end for consistency.
-    // For now, it's handled within the 1v1 branch when it's hidden.
-
     updateWinnerLabels(); 
-    // NEW: Call to ensure the correct winner button styling is applied after UI updates.
+    // Call to ensure the correct winner button styling is applied after UI updates.
     initializeWinnerSelectionStyle();
 }
 
@@ -324,7 +329,8 @@ function formatDate(timestamp) {
         date = timestamp;
     }
     else if (typeof timestamp === 'string') {
-        date = new Date(timestamp + 'T00:00:00Z');
+        // Assuming YYYY-MM-DD format from input date
+        date = new Date(timestamp + 'T00:00:00Z'); // Append T00:00:00Z to treat as UTC and avoid timezone issues
     }
     else {
         console.warn('formatDate received an unhandled type for timestamp:', typeof timestamp, timestamp);
@@ -333,19 +339,35 @@ function formatDate(timestamp) {
     if (date && !isNaN(date.getTime())) { // Check if date is a valid Date object
         // Use 'en-GB' locale for DD/MM/YYYY format
         return date.toLocaleDateString('en-GB');
-
-        // Alternatively, for more explicit control (and if you prefer not to rely on locale defaults):
-        /*
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-        */
     } else {
         console.error('formatDate: Invalid date object created from timestamp:', timestamp);
         return 'N/A';
     }
 }
+
+// Helper function to format time from a Date object
+function formatTime(timestamp) {
+    if (!timestamp) {
+        return 'N/A';
+    }
+    let date;
+    if (typeof timestamp.toDate === 'function') {
+        date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+        date = timestamp;
+    } else {
+        return 'N/A';
+    }
+
+    if (date && !isNaN(date.getTime())) {
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+    } else {
+        return 'N/A';
+    }
+}
+
 
 async function handleAddMatch() {
     console.log("handleAddMatch called!");
@@ -368,11 +390,23 @@ async function handleAddMatch() {
     const player4Name = player4Input ? player4Input.value.trim() : '';
     const matchDate = matchDateInput ? matchDateInput.value : ''; // Assuming matchDateInput is globally assigned or needs to be retrieved here.
 
+    // Get additional match details
+    const isScratchWin = isScratchWinCheckbox ? isScratchWinCheckbox.checked : false;
+    const remarks = remarksInput ? remarksInput.value.trim() : '';
+    // Parse ballsLeft inputs safely, allowing null for empty strings
+    const ballsLeftPlayer1 = ballsLeftPlayer1Input.value.trim() !== '' ? parseInt(ballsLeftPlayer1Input.value) : null;
+    const ballsLeftPlayer2 = ballsLeftPlayer2Input.value.trim() !== '' ? parseInt(ballsLeftPlayer2Input.value) : null;
+
     console.log("Player 1 Name:", player1Name);
     console.log("Player 2 Name:", player2Name);
     console.log("Player 3 Name:", player3Name); // Will be '' for 1v1 if not present
     console.log("Player 4 Name:", player4Name); // Will be '' for 1v1 if not present
     console.log("Match Date:", matchDate);
+    console.log("Is Scratch Win:", isScratchWin);
+    console.log("Remarks:", remarks);
+    console.log("Balls Left Player 1:", ballsLeftPlayer1);
+    console.log("Balls Left Player 2:", ballsLeftPlayer2);
+
 
     // --- CONSOLIDATED BASIC FIELD VALIDATION ---
     let missingFields = [];
@@ -417,7 +451,10 @@ async function handleAddMatch() {
     let winnerName, loserName;
     let team1Players = [];
     let team2Players = [];
-    let winningTeam, losingTeam;
+    let winningTeam = []; // Initialize here
+    let losingTeam = [];  // Initialize here
+    let ballsLeftWinner = null;
+    let ballsLeftLoser = null;
 
     if (gameType === '1v1') {
         // Player names cannot be the same in 1v1
@@ -439,6 +476,10 @@ async function handleAddMatch() {
 
         winnerName = selectedWinnerRadio.value === 'player1' ? player1Name : player2Name;
         loserName = selectedWinnerRadio.value === 'player1' ? player2Name : player1Name;
+
+        // Assign balls left based on winner/loser
+        ballsLeftWinner = selectedWinnerRadio.value === 'player1' ? ballsLeftPlayer1 : ballsLeftPlayer2;
+        ballsLeftLoser = selectedWinnerRadio.value === 'player1' ? ballsLeftPlayer2 : ballsLeftPlayer1;
 
     } else { // 2v2
         // All four players must be unique for 2v2
@@ -466,9 +507,13 @@ async function handleAddMatch() {
         if (selectedWinnerRadio.value === 'team1') {
             winningTeam = team1Players;
             losingTeam = team2Players;
+            ballsLeftWinner = ballsLeftPlayer1; // Assign for 2v2 winner
+            ballsLeftLoser = ballsLeftPlayer2;  // Assign for 2v2 loser
         } else {
             winningTeam = team2Players;
             losingTeam = team1Players;
+            ballsLeftWinner = ballsLeftPlayer2; // Assign for 2v2 winner
+            ballsLeftLoser = ballsLeftPlayer1;  // Assign for 2v2 loser
         }
     }
 
@@ -487,7 +532,11 @@ async function handleAddMatch() {
             winner: null,
             loser: null,
             winningTeam: [],
-            losingTeam: []
+            losingTeam: [],
+            isScratchWin: isScratchWin, // NEW
+            remarks: remarks, // NEW
+            ballsLeftWinner: ballsLeftWinner, // NEW
+            ballsLeftLoser: ballsLeftLoser // NEW
         };
 
         if (gameType === '1v1') {
@@ -568,15 +617,15 @@ async function handleAddMatch() {
             }
 
             const newGames1v1 = newWins1v1 + newLosses1v1;
-            const newWinRate1v1 = calculateWinRate(newWins1v1, newLosses1v1);
+            const newWinRate1v1 = calculateWinRate(newWins1v1, newWins1v1 + newLosses1v1);
 
             const newGames2v2 = newWins2v2 + newLosses2v2;
-            const newWinRate2v2 = calculateWinRate(newWins2v2, newLosses2v2);
+            const newWinRate2v2 = calculateWinRate(newWins2v2, newWins2v2 + newLosses2v2);
 
             const newTotalWins = newWins1v1 + newWins2v2;
             const newTotalLosses = newLosses1v1 + newLosses2v2;
             const newTotalGamesPlayed = newTotalWins + newTotalLosses;
-            const newOverallWinRate = calculateWinRate(newTotalWins, newTotalLosses);
+            const newOverallWinRate = calculateWinRate(newTotalWins, newTotalWins + newTotalLosses);
 
             batch.update(playerRef, {
                 wins1v1: newWins1v1,
@@ -608,7 +657,7 @@ async function handleAddMatch() {
                 }
             } else {
                 const currentTeam = winningTeam.includes(playerName) ? winningTeam : losingTeam;
-                const opposingTeam = winningTeam.includes(playerName) ? losingTeam : winningTeam;
+                const opposingTeam = (currentTeam === winningTeam) ? losingTeam : winningTeam; // Fixed: Ensure opposingTeam is correctly assigned based on currentTeam
 
                 for (const opponent of opposingTeam) {
                     const rivalryDocRef = doc(db, PLAYERS_COLLECTION_PATH, playerName, 'rivalries', opponent);
@@ -637,6 +686,10 @@ async function handleAddMatch() {
         player2Input.value = '';
         player3Input.value = '';
         player4Input.value = '';
+        isScratchWinCheckbox.checked = false; // NEW
+        remarksInput.value = ''; // NEW
+        ballsLeftPlayer1Input.value = ''; // NEW
+        ballsLeftPlayer2Input.value = ''; // NEW
 
         const today = new Date();
         const year = today.getFullYear();
@@ -650,9 +703,10 @@ async function handleAddMatch() {
 
         updateWinnerLabels();
         await fetchAndRenderLeaderboard();
+        await fetchAndRenderLatestMatches(); // NEW: Refresh latest matches table
     } catch (error) {
         console.error("Error adding match or updating player stats:", error);
-        showMessage('matchErrorMessageDisplay', `Error adding match: ${error.message}`, 'error', 5000);
+        showMessage('matchErrorMessageDisplay', `Error adding match: ${error.message}`, 'error', 5000); // Added duration
     }
 }
 
@@ -684,7 +738,7 @@ async function fetchAndRenderLeaderboard() {
                 overallWinRate: data.overallWinRate || 0,
                 currentStreak: data.currentStreak || 0,
                 longestWinStreak: data.longestWinStreak || 0,
-                longestLosingStreak: data.longestLosingStreak || 0,
+                longestLosingStreak: 0,
                 lastPlayed: data.lastPlayed
             });
         });
@@ -709,7 +763,7 @@ async function fetchAndRenderLeaderboard() {
             playerCell.className = 'py-3 px-4 text-left whitespace-nowrap';
             const encodedPlayerName = encodeURIComponent(player.name);
             playerCell.innerHTML = `
-                <a href="playerProfile.html?playerName=${encodedPlayerName}" class="flex items-center text-blue-300 hover:text-blue-200 transition duration-150 ease-in-out">
+                <a href="playerProfile.html?playerName=${encodedPlayerName}" class="flex items-center text-blue-300 hover:text-blue-200 font-medium transition duration-150 ease-in-out">
                     <img src="${player.avatarUrl}" alt="${player.name}" class="w-8 h-8 rounded-full mr-3 border-2 border-purple-500">
                     <span>${player.name}</span>
                 </a>
@@ -760,6 +814,107 @@ async function fetchAndRenderLeaderboard() {
         showMessage('matchErrorMessageDisplay', `Error loading leaderboard: ${error.message}`, 'error');
     }
 }
+
+// UPDATED: Function to fetch and render the latest 6 matches
+async function fetchAndRenderLatestMatches() {
+    try {
+        const matchesCol = collection(db, MATCHES_COLLECTION_PATH);
+        const q = query(
+            matchesCol,
+            orderBy('timestamp', 'desc'), // Order by timestamp descending for latest matches
+            limit(6) // Limit to the latest 6 matches
+        );
+
+        const querySnapshot = await getDocs(q);
+        const matches = [];
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            // Ensure timestamp is a Date object for formatting, if it's a Firestore Timestamp
+            if (data.timestamp && typeof data.timestamp.toDate === 'function') {
+                data.timestamp = data.timestamp.toDate();
+            }
+            matches.push(data);
+        });
+
+        latestMatchesTableBody.innerHTML = ''; // Clear existing rows
+
+        if (matches.length === 0) {
+            latestMatchesTableBody.innerHTML = '<tr><td colspan="8" class="py-3 px-4 text-center text-sm text-gray-400">No matches played yet. Add a match!</td></tr>';
+            return;
+        }
+
+        matches.forEach(match => {
+            const row = latestMatchesTableBody.insertRow();
+            row.className = 'border-b border-gray-600 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500';
+
+            // Date
+            const dateCell = row.insertCell();
+            dateCell.className = 'py-3 px-4 text-left whitespace-nowrap border-r border-gray-500'; // Added border
+            // Use match.timestamp for full date/time consistency if match.date is just "YYYY-MM-DD"
+            dateCell.textContent = formatDate(match.timestamp); 
+
+            // Time
+            const timeCell = row.insertCell();
+            timeCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r border-gray-500'; // Added border
+            timeCell.textContent = formatTime(match.timestamp);
+
+            // Game Type
+            const typeCell = row.insertCell();
+            typeCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r border-gray-500'; // Added border
+            typeCell.textContent = match.gameType.toUpperCase();
+
+            // Winner(s)
+            const winnerCell = row.insertCell();
+            winnerCell.className = 'py-3 px-4 text-left whitespace-nowrap text-green-400 border-r border-gray-500'; // Added border
+            if (match.gameType === '1v1') {
+                winnerCell.textContent = match.winner;
+            } else {
+                winnerCell.textContent = match.winningTeam.join(' & ');
+            }
+
+            // Balls Potted (Winner) - Now applies to all game types if values exist
+            const ballsPottedWinnerCell = row.insertCell();
+            ballsPottedWinnerCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r border-gray-500'; 
+            const winnerBallsLeft = parseInt(match.ballsLeftWinner);
+            if (!isNaN(winnerBallsLeft) && winnerBallsLeft !== null) { 
+                ballsPottedWinnerCell.textContent = 7 - winnerBallsLeft;
+            } else {
+                ballsPottedWinnerCell.textContent = 'N/A';
+            }
+
+            // Loser(s)
+            const loserCell = row.insertCell();
+            loserCell.className = 'py-3 px-4 text-left whitespace-nowrap text-red-400 border-r border-gray-500'; // Added border
+            if (match.gameType === '1v1') {
+                loserCell.textContent = match.loser;
+            } else {
+                loserCell.textContent = match.losingTeam.join(' & ');
+            }
+
+            // Balls Potted (Loser) - Now applies to all game types if values exist
+            const ballsPottedLoserCell = row.insertCell();
+            ballsPottedLoserCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r border-gray-500';
+            const loserBallsLeft = parseInt(match.ballsLeftLoser);
+            if (!isNaN(loserBallsLeft) && loserBallsLeft !== null) { 
+                ballsPottedLoserCell.textContent = 7 - loserBallsLeft;
+            } else {
+                ballsPottedLoserCell.textContent = 'N/A';
+            }
+
+            // Scratch Win
+            const scratchWinCell = row.insertCell();
+            scratchWinCell.className = 'py-3 px-4 text-center whitespace-nowrap'; // No border-r for the last column
+            scratchWinCell.textContent = match.isScratchWin ? 'Yes' : 'No';
+
+            // Removed: Comments column
+        });
+
+    } catch (error) {
+        console.error("Error fetching or rendering latest matches:", error);
+        showMessage('latestMatchesErrorMessage', `Error loading latest matches: ${error.message}`, 'error');
+    }
+}
+
 
 // --- Clear All Data Functions ---
 function initiateClearAllData() {
@@ -814,11 +969,12 @@ async function clearAllDataConfirmed() {
 
         showMessage('clearDataMessage', 'All leaderboard data has been successfully cleared.', 'success', 3000);
         await fetchAndRenderLeaderboard();
+        await fetchAndRenderLatestMatches(); // Refresh latest matches table after clear
         const playersAfterClear = await fetchPlayersFromFirebase();
         populatePlayerDropdowns(playersAfterClear);
     } catch (error) {
         console.error("Error clearing all data:", error);
-        showMessage('matchErrorMessageDisplay', `Error clearing data: ${error.message}`, 'error',);
+        showMessage('matchErrorMessageDisplay', `Error clearing data: ${error.message}`, 'error', 5000); // Added duration
     } finally {
         if (clearConfirmationMessage) {
             clearConfirmationMessage.classList.add('hidden');
@@ -854,6 +1010,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     matchDateInput = document.getElementById('matchDate');
 
     scratchWinCheckboxContainer = document.getElementById('scratchWinCheckboxContainer');
+    isScratchWinCheckbox = document.getElementById('isScratchWin'); // NEW
+    remarksInput = document.getElementById('remarks'); // NEW
+    ballsLeftPlayer1Input = document.getElementById('ballsLeftPlayer1'); // NEW
+    ballsLeftPlayer2Input = document.getElementById('ballsLeftPlayer2'); // NEW
 
     winnerSelectionDiv = document.getElementById('winnerSelection');
     winnerPlayer1RadioDiv = document.getElementById('winner_player1_radio_div'); 
@@ -879,6 +1039,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     addMatchButton = document.getElementById('addMatchButton'); 
     leaderboardTableBody = document.getElementById('leaderboardTableBody'); 
     matchErrorMessageDisplay = document.getElementById('matchErrorMessageDisplay'); 
+    latestMatchesTableBody = document.getElementById('latestMatchesTableBody'); // NEW
+    latestMatchesErrorMessage = document.getElementById('latestMatchesErrorMessage'); // NEW
 
     clearAllDataButton = document.getElementById('clearAllDataButton'); 
     clearConfirmationMessage = document.getElementById('clearConfirmationMessage'); 
@@ -900,6 +1062,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentUserId = user.uid;
             console.log("User signed in anonymously with UID:", currentUserId);
             await fetchAndRenderLeaderboard();
+            await fetchAndRenderLatestMatches(); // Fetch and render latest matches on auth
             const players = await fetchPlayersFromFirebase(); 
             populatePlayerDropdowns(players); 
             
@@ -911,7 +1074,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log("Signed in anonymously.");
             } catch (error) {
                 console.error("Error signing in anonymously:", error);
-                showMessage('matchErrorMessageDisplay', `Authentication error: ${error.message}`, 'error');
+                showMessage('matchErrorMessageDisplay', `Authentication error: ${error.message}`, 'error', 5000); // Added duration
             }
         }
     });

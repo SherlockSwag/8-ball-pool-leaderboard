@@ -62,8 +62,62 @@
                 </div>
                 <div class="flex-grow text-center sm:text-left">
                     <h1 id="profilePlayerName" class="text-4xl font-bold text-blue-300 mb-2">Loading Player...</h1>
+                    <p id="playerDescription" class="text-gray-300 text-lg italic mt-2">No description available.</p>
                 </div>
+                <div class="flex-shrink-0 sm:self-end mt-4 sm:mt-0">
+                    <button id="editProfileBtn" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors text-base">
+                        Edit Profile
+                    </button>
+                </div>
+                
             </section>
+            <div id="editProfileModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-button" id="closeEditModalBtn">&times;</span>
+                    <h2 class="modal-title">Edit Player Profile</h2>
+                    <form id="editProfileForm">
+                        <div class="form-group">
+                            <label for="editDisplayName" class="form-label">Display Name:</label>
+                            <input type="text" id="editDisplayName" class="form-input" placeholder="Enter new display name">
+                        </div>
+                        <div class="form-group">
+                            <label for="editDescription" class="form-label">Description:</label>
+                            <textarea id="editDescription" rows="4" class="form-textarea" placeholder="Tell us about yourself..."></textarea>
+                        </div>
+
+                        <div class="avatar-section">
+                            <label class="avatar-section-title">Player Avatar</label>
+                            
+                            <label class="avatar-preview-label">Current Displayed Avatar:</label>
+                            <img id="currentAvatarPreview" src="" alt="Current Avatar" class="current-avatar-preview">
+                            
+                            <div class="avatar-option-card">
+                                <label class="avatar-option-title">Generate New DiceBear Pixel Art Avatar</label>
+                                <button type="button" id="generateRandomAvatarBtn" class="btn btn-purple">
+                                    Generate Random DiceBear
+                                </button>
+                            </div>
+                        </div>
+                        <div class="avatar-option-card">
+                            <label class="avatar-option-title">Upload Custom Avatar (Image file)</label>
+                            <label for="editAvatarFile" class="form-label">Select File (optional):</label>
+                            <input type="file" id="editAvatarFile" accept="image/*" class="custom-file-input">
+                            <p class="text-xs text-gray-400 mt-2">Uploading a new file will override the DiceBear avatar.</p>
+                        </div>
+                        
+                        <div id="editProfileStatus" class="status-message hidden"></div>
+                        
+                        <div class="flex-end-gap-3">
+                            <button type="button" id="cancelEditBtn" class="btn btn-gray">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-blue">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
             <!-- Statistics Grid -->
             <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -198,12 +252,6 @@
                 </div>
                 <p id="noPartnershipsMessage" class="py-3 px-4 text-center text-sm text-gray-400 hidden">No partnerships found yet.</p>
             </section>
-
-            <div class="mt-8 text-center hidden flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <a id="viewMatchHistoryLink" href="matchHistory.html" class="btn-primary">
-                    View All Match History
-                </a>
-            </div>
         </div>
     </main>
 

@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Firebase
     try {
         if (!finalFirebaseConfig || !finalFirebaseConfig.projectId) {
-            throw new new Error("Firebase configuration 'projectId' is missing. Cannot initialize Firebase.");
+            throw new Error("Firebase configuration 'projectId' is missing. Cannot initialize Firebase.");
         }
         const app = initializeApp(finalFirebaseConfig);
         db = getFirestore(app);
@@ -81,9 +81,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterButton = document.getElementById('filterButton');
     const filterControls = document.getElementById('filterControls');
     const gameTypeFilter = document.getElementById('gameTypeFilter');
-    const winnerFilter = document.getElementById('winnerFilter'); // NEW
-    const loserFilter = document.getElementById('loserFilter');   // NEW
-    const dateFilter = document.getElementById('dateFilter');     // NEW
+    const winnerFilter = document.getElementById('winnerFilter'); 
+    const loserFilter = document.getElementById('loserFilter');   
+    const dateFilter = document.getElementById('dateFilter');     
+    const scratchWinFilter = document.getElementById('scratchWinFilter'); 
     const applyFiltersButton = document.getElementById('applyFiltersButton');
     const clearFiltersButton = document.getElementById('clearFiltersButton');
 
@@ -96,9 +97,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (matchesToRender.length === 0) {
             noMatchesMessage.classList.remove('hidden');
+            // Updated colspan to accommodate the two new columns (Date, Time, GameType, Winner, Balls(W), Loser, Balls(L), Scratch Win, Comments = 9 columns)
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="py-3 px-4 text-center text-sm text-gray-400">No matches found with current filters.</td>
+                    <td colspan="9" class="py-3 px-4 text-center text-sm text-gray-400">No matches found with current filters.</td>
                 </tr>
             `;
             return;
@@ -115,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.warn('Invalid date string in match.date:', match.date);
                 }
             } else {
-                 console.warn('Match object missing "date" field or invalid format for date string for date display:', match);
+                console.warn('Match object missing "date" field or invalid format for date string for date display:', match);
             }
 
             // Determine the display time from match.timestamp
@@ -146,6 +148,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             let winners = 'N/A';
             let losers = 'N/A';
+            let ballsPottedWinner = 'N/A';
+            let ballsPottedLoser = 'N/A';
 
             if (match.gameType === '1v1') {
                 winners = match.winner || 'N/A';
@@ -154,14 +158,40 @@ document.addEventListener('DOMContentLoaded', async () => {
                 winners = (match.winningTeam && match.winningTeam.length > 0) ? match.winningTeam.join(', ') : 'N/A';
                 losers = (match.losingTeam && match.losingTeam.length > 0) ? match.losingTeam.join(', ') : 'N/A';
             }
+            
+            // Calculate balls potted for both 1v1 and 2v2
+            if (match.ballsLeftWinner !== undefined && match.ballsLeftWinner !== null && typeof match.ballsLeftWinner === 'number') {
+                ballsPottedWinner = 7 - match.ballsLeftWinner;
+            }
+            if (match.ballsLeftLoser !== undefined && match.ballsLeftLoser !== null && typeof match.ballsLeftLoser === 'number') {
+                ballsPottedLoser = 7 - match.ballsLeftLoser;
+            }
+
+            // START OF MODIFICATION: Changed 'match.scratchWin' to 'match.isScratchWin'
+            let displayScratchWin = 'No';
+            if (typeof match.isScratchWin === 'boolean') {
+                displayScratchWin = match.isScratchWin ? 'Yes' : 'No';
+            } else if (typeof match.isScratchWin === 'string') {
+                displayScratchWin = (match.isScratchWin.toLowerCase() === 'true') ? 'Yes' : 'No';
+            } else if (typeof match.isScratchWin === 'number') {
+                displayScratchWin = (match.isScratchWin === 1) ? 'Yes' : 'No';
+            }
+            // END OF MODIFICATION
+
+            // Determine Comments display
+            const displayComments = match.comments && match.comments.trim().length > 0 ? match.comments : 'N/A';
 
             const row = `
                 <tr class="border-b border-gray-200 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500">
-                    <td class="py-2 px-4 text-sm text-gray-200">${displayDate}</td>
-                    <td class="py-2 px-4 text-sm text-gray-200">${displayTime}</td>
-                    <td class="py-2 px-4 text-sm text-gray-200">${gameType}</td>
-                    <td class="py-2 px-4 text-sm text-green-300 font-semibold">${winners}</td>
-                    <td class="py-2 px-4 text-sm text-red-300 font-semibold">${losers}</td>
+                    <td class="py-2 px-4 text-sm text-gray-200 text-center">${displayDate}</td>
+                    <td class="py-2 px-4 text-sm text-gray-200 text-center">${displayTime}</td>
+                    <td class="py-2 px-4 text-sm text-gray-200 text-center">${gameType}</td>
+                    <td class="py-2 px-4 text-sm text-green-300 font-semibold text-center">${winners}</td>
+                    <td class="py-2 px-4 text-sm text-green-300 text-center">${ballsPottedWinner}</td>
+                    <td class="py-2 px-4 text-sm text-red-300 font-semibold text-center">${losers}</td>
+                    <td class="py-2 px-4 text-sm text-red-300 text-center">${ballsPottedLoser}</td>
+                    <td class="py-2 px-4 text-sm text-gray-200 text-center">${displayScratchWin}</td>
+                    <td class="py-2 px-4 text-sm text-gray-200 text-center">${displayComments}</td>
                 </tr>
             `;
             tableBody.innerHTML += row;
@@ -216,6 +246,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedDate = selectedDateStr ? new Date(selectedDateStr) : null;
         if (selectedDate) selectedDate.setHours(0, 0, 0, 0); // Normalize to start of day
 
+        // Get selected Scratch Win filter value
+        const selectedScratchWin = scratchWinFilter.value; // 'all', 'yes', 'no'
+
         const filteredMatches = allMatches.filter(match => {
             // Filter by Game Type
             if (selectedGameType !== 'all' && match.gameType.toLowerCase() !== selectedGameType.toLowerCase()) {
@@ -267,6 +300,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
+            // Filter by Scratch Win - START OF MODIFICATION: Changed 'match.scratchWin' to 'match.isScratchWin'
+            if (selectedScratchWin !== 'all') {
+                let isScratchWin = false; // Default to false
+                if (typeof match.isScratchWin === 'boolean') {
+                    isScratchWin = match.isScratchWin;
+                } else if (typeof match.isScratchWin === 'string') {
+                    isScratchWin = (match.isScratchWin.toLowerCase() === 'true');
+                } else if (typeof match.isScratchWin === 'number') {
+                    isScratchWin = (match.isScratchWin === 1);
+                }
+
+                if (selectedScratchWin === 'yes' && !isScratchWin) {
+                    return false;
+                }
+                if (selectedScratchWin === 'no' && isScratchWin) {
+                    return false;
+                }
+            }
+            // END OF MODIFICATION
+
             return true;
         });
 
@@ -279,6 +332,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         winnerFilter.value = 'all';
         loserFilter.value = 'all';
         dateFilter.value = ''; // Clear date input
+        scratchWinFilter.value = 'all'; // Clear scratch win filter
         applyFilters(); // Re-apply filters to show all matches
     }
 

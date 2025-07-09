@@ -43,19 +43,18 @@
         </nav>
     </header>
 
-    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-5xl mb-8 mt-2">
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-8xl mb-8 mt-2">
         <section class="mb-8">
-            <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Full History</h2>
+            <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">All Match History</h2>
             <div class="bg-gray-700 p-6 rounded-lg shadow-inner">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold text-gray-100">All Recorded Matches</h3>
+                <div class="flex items-center mb-4">
                     <button id="filterButton" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-150 ease-in-out">
                         Filter Matches
                     </button>
                 </div>
 
                 <div id="filterControls" class="bg-gray-600 p-4 rounded-lg mt-4 mb-4 hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-5 md:grid-cols-5 lg:grid-cols-5 gap-4">
                         <div>
                             <label for="dateFilter" class="block text-gray-300 text-sm font-bold mb-2">Matches On or After:</label>
                             <input type="date" id="dateFilter" class="shadow appearance-none border rounded w-full py-2 px-3 text-white-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-500">
@@ -76,8 +75,16 @@
                         </div>
                         <div>
                             <label for="loserFilter" class="block text-gray-300 text-sm font-bold mb-2">Loser:</label>
-                            <select id="loserFilter" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-500">
+                            <select id="loserFilter" class="shadow appearance-none border rounded w-full py-2 px-3 text-white-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-500">
                                 <option value="all">Any Loser</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="scratchWinFilter" class="block text-gray-300 text-sm font-bold mb-2">Scratch Win:</label>
+                            <select id="scratchWinFilter" class="shadow appearance-none border rounded w-full py-2 px-3 text-white-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-500">
+                                <option value="all">All</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
                             </select>
                         </div>
                     </div>
@@ -89,20 +96,23 @@
                     </button>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full leading-normal table-auto">
+                <div class="overflow-x-auto mx-auto"> <table class="min-w-full leading-normal table-auto">
                         <thead>
                             <tr>
-                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Date</th>
-                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Time</th>
-                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Game Type</th>
-                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Winner(s)</th>
-                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Loser(s)</th>
+                                <th class="py-3 px-4 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">Date</th>
+                                <th class="py-3 px-4 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">Time</th>
+                                <th class="py-3 px-4 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">Game Type</th>
+                                <th class="py-3 px-4 text-center text-sm font-semibold text-green-300 uppercase tracking-wider">Winner(s)</th>
+                                <th class="py-3 px-4 text-center text-sm font-semibold text-green-300 uppercase tracking-wider">Balls Potted (W)</th>
+                                <th class="py-3 px-4 text-center text-sm font-semibold text-red-300 uppercase tracking-wider">Loser(s)</th>
+                                <th class="py-3 px-4 text-center text-sm font-semibold text-red-300 uppercase tracking-wider">Balls Potted (L)</th>
+                                <th class="py-3 px-4 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">Scratch Win</th>
+                                <th class="py-3 px-4 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">Comments</th>
                             </tr>
                         </thead>
                         <tbody id="matchHistoryTableBody" class="text-gray-100">
                             <tr>
-                                <td colspan="5" class="py-3 px-4 text-center text-sm text-gray-400">Loading all matches...</td>
+                                <td colspan="9" class="py-3 px-4 text-center text-sm text-gray-400">Loading all matches...</td>
                             </tr>
                         </tbody>
                     </table>

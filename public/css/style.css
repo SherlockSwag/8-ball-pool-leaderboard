@@ -789,6 +789,14 @@ video {
   max-width: 80rem;
 }
 
+.max-w-8xl {
+  max-width: 88rem;
+}
+
+.max-w-9xl {
+  max-width: 96rem;
+}
+
 .max-w-xl {
   max-width: 36rem;
 }

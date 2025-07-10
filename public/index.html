@@ -37,9 +37,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Empty
-                        </a>
+                    <a href="admin.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
+                        Admin
+                    </a>
                 </li>
             </ul>
         </nav>
@@ -264,24 +264,6 @@
             </button>
             <div id="matchErrorMessageDisplay" class="mt-4 p-3 rounded-lg text-xl hidden text-white"></div>
         </div>
-    </div>
-
-    <!-- Admin/Testing Controls -->
-    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-2xl mb-8 flex flex-col items-center">
-        <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Admin Controls (For Testing)</h2>
-        <button id="clearAllDataButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
-            Clear All Leaderboard Data
-        </button>
-        <div id="clearConfirmationMessage" class="mt-4 p-4 rounded-lg bg-yellow-700 text-white hidden flex-col items-center space-y-3 min-h-[8rem] border border-yellow-800">
-            <p><strong>Are you sure? This will permanently delete ALL player data.</strong></p>
-            <button id="confirmClearButton" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
-                Confirm Clear ALL Data
-            </button>
-            <button id="cancelClearButton" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
-                Cancel
-            </button>
-        </div>
-        <div id="clearDataMessage" class="mt-4 p-3 rounded-lg text-sm hidden bg-blue-700 text-white min-h-[4rem]"></div>
     </div>
 
     <script type="module" src="js/leaderboard.js"></script>

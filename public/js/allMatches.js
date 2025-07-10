@@ -2,7 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getFirestore, collection, query, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
-import { showMessage, hideMessage } from 'firebase/auth';
+import { showMessage, hideMessage } from './utils.js';
 
 // Import your local firebase-config.js
 import { firebaseConfig as localFirebaseConfig } from './firebase-config.js'; 

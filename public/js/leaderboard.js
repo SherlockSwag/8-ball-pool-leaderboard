@@ -3,7 +3,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getFirestore, doc, setDoc, collection, query, getDocs, increment, writeBatch, deleteDoc, getDoc,serverTimestamp,orderBy,limit} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 import { firebaseConfig as localFirebaseConfig } from './firebase-config.js'; 
-import { showMessage, hideMessage } from './utils.js';
+import { showMessage, hideMessage, formatDate, formatTime} from './utils.js';
 
 let db;
 let auth;
@@ -279,58 +279,6 @@ function calculateWinRate(wins, losses) {
         return 0;
     }
     return (wins / (wins + losses)) * 100;
-}
-
-function formatDate(timestamp) {
-    if (!timestamp) {
-        return 'N/A'; // Handle null or undefined
-    }
-
-    let date;
-    if (typeof timestamp.toDate === 'function') {
-        date = timestamp.toDate();
-    }
-    else if (timestamp instanceof Date) {
-        date = timestamp;
-    }
-    else if (typeof timestamp === 'string') {
-        // Assuming YYYY-MM-DD format from input date
-        date = new Date(timestamp + 'T00:00:00Z'); // Append T00:00:00Z to treat as UTC and avoid timezone issues
-    }
-    else {
-        console.warn('formatDate received an unhandled type for timestamp:', typeof timestamp, timestamp);
-        return 'N/A';
-    }
-    if (date && !isNaN(date.getTime())) { // Check if date is a valid Date object
-        // Use 'en-GB' locale for DD/MM/YYYY format
-        return date.toLocaleDateString('en-GB');
-    } else {
-        console.error('formatDate: Invalid date object created from timestamp:', timestamp);
-        return 'N/A';
-    }
-}
-
-// Helper function to format time from a Date object
-function formatTime(timestamp) {
-    if (!timestamp) {
-        return 'N/A';
-    }
-    let date;
-    if (typeof timestamp.toDate === 'function') {
-        date = timestamp.toDate();
-    } else if (timestamp instanceof Date) {
-        date = timestamp;
-    } else {
-        return 'N/A';
-    }
-
-    if (date && !isNaN(date.getTime())) {
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${hours}:${minutes}`;
-    } else {
-        return 'N/A';
-    }
 }
 
 async function handleAddMatch() {
@@ -879,83 +827,6 @@ async function fetchAndRenderLatestMatches() {
     }
 }
 
-// --- Clear All Data Functions ---
-function initiateClearAllData() {
-    if (clearConfirmationMessage) {
-        clearConfirmationMessage.classList.remove('hidden');
-        showMessage('clearDataMessage', 'Confirming will delete all player and match data. This cannot be undone!', 'error');
-    }
-}
-
-async function clearAllDataConfirmed() {
-    try {
-        confirmClearButton.disabled = true;
-        cancelClearButton.disabled = true;
-        showMessage('clearDataMessage', 'Clearing data, please wait...', 'info');
-
-        const playersRef = collection(db, PLAYERS_COLLECTION_PATH);
-        const matchesRef = collection(db, MATCHES_COLLECTION_PATH);
-
-        const playerDocs = await getDocs(playersRef);
-        const playerBatch = writeBatch(db);
-
-        // --- Step 1: Delete Rivalries Subcollections for each player ---
-        // This is necessary because deleting a parent document does not delete its subcollections
-        for (const playerDoc of playerDocs.docs) { // Iterate over player documents
-            const rivalrySubcollectionRef = collection(db, PLAYERS_COLLECTION_PATH, playerDoc.id, 'rivalries'); // Assuming 'rivalries' is the subcollection name
-            const rivalryDocs = await getDocs(rivalrySubcollectionRef);
-
-            // Add each rivalry document to the current batch for deletion
-            rivalryDocs.forEach(rivalryDoc => {
-                playerBatch.delete(rivalryDoc.ref);
-            });
-            console.log(`Rivalries for player ${playerDoc.id} added to batch for deletion.`);
-        }
-        
-        // --- Step 2: Delete Player Documents themselves ---
-        playerDocs.forEach(doc => {
-            playerBatch.delete(doc.ref);
-        });
-        
-        // Commit the batch containing both rivalries and player document deletions
-        await playerBatch.commit();
-        console.log("All player data (including rivalries) deleted.");
-
-        // --- Delete Match Documents (remains the same) ---
-        const matchDocs = await getDocs(matchesRef);
-        const matchBatch = writeBatch(db); // Create a new batch for matches or add to the existing if size permits
-        matchDocs.forEach(doc => {
-            matchBatch.delete(doc.ref);
-        });
-        await matchBatch.commit();
-        console.log("All match data deleted.");
-
-        showMessage('clearDataMessage', 'All leaderboard data has been successfully cleared.', 'success', 3000);
-        await fetchAndRenderLeaderboard();
-        await fetchAndRenderLatestMatches(); // Refresh latest matches table after clear
-        const playersAfterClear = await fetchPlayersFromFirebase();
-        populatePlayerDropdowns(playersAfterClear);
-    } catch (error) {
-        console.error("Error clearing all data:", error);
-        showMessage('matchErrorMessageDisplay', `Error clearing data: ${error.message}`, 'error', 5000); // Added duration
-    } finally {
-        if (clearConfirmationMessage) {
-            clearConfirmationMessage.classList.add('hidden');
-        }
-        confirmClearButton.disabled = false;
-        cancelClearButton.disabled = false;
-    }
-}
-
-function cancelClearAllData() {
-    if (clearConfirmationMessage) { 
-        clearConfirmationMessage.classList.add('hidden');
-    }
-    if (clearDataMessage) { 
-        clearDataMessage.textContent = ''; 
-    }
-}
-
 // --- DOMContentLoaded Block ---
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOMContentLoaded fired.");
@@ -1062,8 +933,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     confirmClearButton.addEventListener('click', clearAllDataConfirmed); 
     cancelClearButton.addEventListener('click', cancelClearAllData); 
 
-    // Initial display update based on default selections
-    // This initial call will likely set 'Player 1' placeholders,
-    // but the call inside onAuthStateChanged will correct it later.
     updateMatchFormUI(); 
 });

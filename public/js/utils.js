@@ -43,3 +43,63 @@ export function hideMessage(elementId) {
         displayElement.textContent = ''; 
     }
 }
+
+/**
+ * Formats a given date input into a readable 'YYYY-MM-DD' format.
+ * Handles Date objects, date strings, and Firebase Timestamps.
+ * @param {string|Date|firebase.firestore.Timestamp} dateInput - The date to format.
+ * @returns {string} Formatted date string (YYYY-MM-DD) or 'Invalid Date'/'N/A'.
+ */
+export function formatDate(dateInput) {
+    let date;
+    if (dateInput instanceof Date) {
+        date = dateInput;
+    } else if (typeof dateInput === 'string') {
+        date = new Date(dateInput);
+    } else if (dateInput && typeof dateInput.toDate === 'function') {
+        // Handle Firebase Timestamp objects
+        date = dateInput.toDate();
+    } else {
+        return 'N/A'; // Or handle as appropriate if input type is unexpected
+    }
+
+    if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${day}-${month}-${year}`;
+}
+
+/**
+ * Formats a given date/time input into a readable 'HH:MM AM/PM' format.
+ * Handles Date objects, time strings, and Firebase Timestamps.
+ * @param {string|Date|firebase.firestore.Timestamp} timeInput - The time to format.
+ * @returns {string} Formatted time string (HH:MM AM/PM) or 'Invalid Time'/'N/A'.
+ */
+export function formatTime(timeInput) {
+    let date;
+    if (timeInput instanceof Date) {
+        date = timeInput;
+    } else if (typeof timeInput === 'string') {
+        date = new Date(timeInput);
+    } else if (timeInput && typeof timeInput.toDate === 'function') {
+        // Handle Firebase Timestamp objects
+        date = timeInput.toDate();
+    } else {
+        return 'N/A'; // Or handle as appropriate
+    }
+
+    if (isNaN(date.getTime())) {
+        return 'Invalid Time';
+    }
+
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // The hour '0' (midnight) should be '12 AM'
+    return `${hours}:${minutes} ${ampm}`;
+}

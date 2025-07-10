@@ -3,7 +3,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getFirestore, doc, getDoc, collection, query, orderBy, limit, where, getDocs, updateDoc, setDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js';
-import { showMessage, hideMessage } from './utils.js';
+import { showMessage, hideMessage, formatDate} from './utils.js';
 
 // Import your local firebase-config.js
 import { firebaseConfig as localFirebaseConfig } from './firebase-config.js';
@@ -49,22 +49,6 @@ try {
 } catch (error) {
     console.error("playerProfile.js: Error initializing Firebase:", error);
     showMessage('profileErrorMessage', `Failed to initialize Firebase: ${error.message}`, 'error');
-}
-
-function formatDate(dateString) {
-    if (!dateString) return '';
-    try {
-        const [year, month, day] = dateString.split('-');
-        const date = new Date(year, month - 1, day);
-        return date.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-    } catch (e) {
-        console.warn('Error formatting date string:', dateString, e);
-        return dateString;
-    }
 }
 
 function navigateToPlayerProfile(playerName) {

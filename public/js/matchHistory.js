@@ -2,6 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getFirestore, collection, query, orderBy, getDocs, where } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+import { showMessage, hideMessage } from './utils.js';
 
 // Import your local firebase-config.js
 import { firebaseConfig as localFirebaseConfig } from './firebase-config.js'; 
@@ -34,30 +35,6 @@ try {
         console.warn("Using placeholder Firebase Project ID from local config due to error. Firestore operations will not connect to a real project unless configured with your actual Firebase credentials in firebase-config.js.");
     }
 }
-
-// Helper function to show messages
-function showMessage(elementId, message, type = 'info') {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = message;
-        element.className = `mt-2 p-3 rounded-lg text-sm ${
-            type === 'error' ? 'bg-red-700 text-white' : 
-            type === 'success' ? 'bg-green-700 text-white' : 
-            'bg-blue-700 text-white'
-        }`;
-        element.classList.remove('hidden');
-    }
-}
-
-// Function to hide messages
-function hideMessage(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.classList.add('hidden');
-        element.textContent = '';
-    } 
-}
-
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Firebase

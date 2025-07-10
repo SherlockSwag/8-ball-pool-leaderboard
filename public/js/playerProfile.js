@@ -3,6 +3,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getFirestore, doc, getDoc, collection, query, orderBy, limit, where, getDocs, updateDoc, setDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js';
+import { showMessage, hideMessage } from './utils.js';
 
 // Import your local firebase-config.js
 import { firebaseConfig as localFirebaseConfig } from './firebase-config.js';
@@ -48,24 +49,6 @@ try {
 } catch (error) {
     console.error("playerProfile.js: Error initializing Firebase:", error);
     showMessage('profileErrorMessage', `Failed to initialize Firebase: ${error.message}`, 'error');
-}
-
-// Helper function to display messages
-function showMessage(elementId, message, type = 'info') {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = message;
-        element.className = `p-3 rounded-md text-center text-sm mt-4 ${type === 'error' ? 'bg-red-800 text-white' : type === 'info' ? 'bg-blue-800 text-white' : 'bg-green-800 text-white'}`;
-        element.classList.remove('hidden');
-    }
-}
-
-function hideMessage(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.classList.add('hidden');
-        element.textContent = '';
-    }
 }
 
 function formatDate(dateString) {
@@ -632,7 +615,6 @@ let generateRandomAvatarBtn;
 let dicebearRandomizedThisSession = false; 
 let sessionRandomDicebearSeed = null; // Store the random seed generated during the session
 let sessionRandomDicebearBgColor = null; // Store the random background color generated during the session
-
 
 function openEditProfileModal() {
     if (!currentPlayerData || !currentPlayerName) {

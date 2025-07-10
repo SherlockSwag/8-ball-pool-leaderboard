@@ -2,6 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getFirestore, collection, query, getDocs, orderBy, limit } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+import { showMessage, hideMessage } from './utils.js';
 
 // Import your local firebase-config.js
 import { firebaseConfig as localFirebaseConfig } from './firebase-config.js'; 
@@ -34,30 +35,6 @@ try {
 
 // Firestore collection path for public data (players)
 const PLAYERS_COLLECTION_PATH = `artifacts/${appId}/public/data/players`;
-
-// Helper function to show messages (errors, success, loading)
-function showMessage(elementId, message, type = 'info') {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = message;
-        element.className = `col-span-full mt-4 p-3 rounded-lg text-sm text-center ${
-            type === 'error' ? 'bg-red-700 text-white' : 
-            type === 'success' ? 'bg-green-700 text-white' : 
-            'bg-blue-700 text-white'
-        }`;
-        element.classList.remove('hidden');
-    }
-}
-
-// Function to hide messages
-function hideMessage(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.classList.add('hidden');
-        element.textContent = '';
-    }
-}
-
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Firebase

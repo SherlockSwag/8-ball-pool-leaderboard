@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player Profile - Pool House</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <!-- Google Fonts for 'Inter' -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css"> 
 </head>
 <body class="bg-gradient-to-br from-gray-900 to-gray-800 font-inter flex flex-col items-center min-h-screen px-4 text-gray-100">
-    <!-- Main Header - Now a scrolling header -->
-    <!-- Dashboard Menu -->
     <header class="w-full max-w-5xl bg-gradient-to-r from-blue-700 to-purple-800 shadow-xl py-4 text-white text-center rounded-b-xl mb-8">
         <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Player Profile</h1>
         <nav class="w-full max-w-5xl mx-auto mt-4 px-4">
@@ -50,10 +47,8 @@
 
             <div id="profileErrorMessage" class="mt-4 p-3 rounded-lg text-sm hidden"></div>
 
-            <!-- Player Name and Description Section -->
             <section class="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 pb-8 border-b border-gray-700">
                 <div class="flex-shrink-0">
-                    <!-- Player icon/avatar - now dynamically set by playerProfile.js -->
                     <div class="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-3xl font-bold text-white mb-4 overflow-hidden shadow-lg">
                         <img id="playerAvatar" src="https://placehold.co/96x96/4299E1/FFFFFF?text=?" 
                              alt="Player Avatar" 
@@ -119,9 +114,7 @@
                 </div>
             </div>
 
-            <!-- Statistics Grid -->
             <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <!-- Overall Statistics Card -->
                 <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
                     <h2 class="text-xl font-semibold text-blue-200 mb-4 border-b border-gray-600 pb-2">Overall Statistics</h2>
                     <div class="space-y-3 text-base">
@@ -131,7 +124,6 @@
                     </div>
                 </div>
 
-                <!-- Streaks Card -->
                 <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
                     <h2 class="text-xl font-semibold text-red-200 mb-4 border-b border-gray-600 pb-2">Streaks</h2>
                     <div class="space-y-3 text-base">
@@ -141,7 +133,6 @@
                     </div>
                 </div>
 
-                <!-- 1v1 Matches Card -->
                 <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
                     <h2 class="text-xl font-semibold text-green-200 mb-4 border-b border-gray-600 pb-2">1v1 Matches</h2>
                     <div class="space-y-3 text-base">
@@ -151,7 +142,6 @@
                     </div>
                 </div>
 
-                <!-- 2v2 Matches Card -->
                 <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
                     <h2 class="text-xl font-semibold text-yellow-200 mb-4 border-b border-gray-600 pb-2">2v2 Matches</h2>
                     <div class="space-y-3 text-base">
@@ -160,9 +150,24 @@
                         <p class="flex items-center"><span class="mr-2 text-yellow-400">🏅</span> <strong class="font-semibold text-gray-200">Win Rate:</strong> <span id="winRate2v2" class="ml-auto text-gray-50">N/A</span></p>
                     </div>
                 </div>
+
+                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
+                    <h2 class="text-xl font-semibold text-blue-300 mb-4 border-b border-gray-600 pb-2">Balls Potted</h2>
+                    <div class="space-y-3 text-base">
+                        <p class="flex items-center"><span class="mr-2 text-blue-400">🎱</span> <strong class="font-semibold text-gray-200">Total Balls Potted:</strong> <span id="totalBallsPotted" class="ml-auto text-gray-50">N/A</span></p>
+                        <p class="flex items-center"><span class="mr-2 text-blue-400">🎯</span> <strong class="font-semibold text-gray-200">Average Balls Potted per Game:</strong> <span id="averageBallsPotted" class="ml-auto text-gray-50">N/A</span></p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
+                    <h2 class="text-xl font-semibold text-red-300 mb-4 border-b border-gray-600 pb-2">8 Ball Scratches</h2>
+                    <div class="space-y-3 text-base">
+                        <p class="flex items-center"><span class="mr-2 text-red-400">🚫</span> <strong class="font-semibold text-gray-200">8 Ball Scratches (By Player):</strong> <span id="player8BallScratches" class="ml-auto text-gray-50">N/A</span></p>
+                        <p class="flex items-center"><span class="mr-2 text-red-400">✅</span> <strong class="font-semibold text-gray-200">Wins by Opponent 8 Ball Scratch:</strong> <span id="winsByOpponent8BallScratch" class="ml-auto text-gray-50">N/A</span></p>
+                    </div>
+                </div>
             </section>
 
-            <!-- Recent Match History Section -->
             <section id="recentMatchesCard" class="bg-gray-800 rounded-lg mb-6 hidden">
                 <h3 class="text-xl text-center font-semibold text-blue-500 mb-4 border-b border-gray-700 pb-2">RECENT MATCHES</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -210,7 +215,6 @@
                 </div>
             </section>
 
-            <!-- Rivalries Section -->
             <section id="rivalriesCard" class="mb-8"> 
                 <h2 class="text-xl text-center font-semibold text-orange-400 mb-4 border-b border-gray-700 pb-2">RIVALRIES</h2>
                 <div class="overflow-x-auto rounded-lg border border-gray-700">
@@ -231,7 +235,6 @@
                 <p id="noRivalriesMessage" class="py-3 px-4 text-center text-sm text-gray-400 hidden">No rivalries to display yet.</p>
             </section>
 
-            <!-- Partnerships Section -->
             <section id="partnershipsCard" class="mb-8">
                 <h2 class="text-xl text-center font-semibold text-purple-500 mb-4 border-b border-gray-700 pb-2">PARTNERSHIPS</h2>
                 <div class="overflow-x-auto rounded-lg border border-gray-700">

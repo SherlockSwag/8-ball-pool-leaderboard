@@ -3,6 +3,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getFirestore, doc, setDoc, collection, query, getDocs, increment, writeBatch, deleteDoc, getDoc,serverTimestamp,orderBy,limit} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 import { firebaseConfig as localFirebaseConfig } from './firebase-config.js'; 
+import { showMessage, hideMessage } from './utils.js';
 
 let db;
 let auth;
@@ -88,45 +89,6 @@ function initializeWinnerSelectionStyle() {
             label.classList.remove('is-selected');
         }
     });
-}
-
-function showMessage(elementId, message, type, duration = 0) {
-    console.log(`DEBUG: showMessage received: elementId=${elementId}, message="${message}", type=${type}, duration=${duration}`);
-    const displayElement = document.getElementById(elementId);
-    if (displayElement) {
-        console.log("DEBUG: displayElement found:", displayElement);
-        displayElement.textContent = message;
-        // This line removes all specified classes.
-        displayElement.classList.remove('hidden', 'bg-red-800', 'bg-green-800', 'bg-blue-800');
-        console.log("DEBUG: Classes after removal:", displayElement.classList.value);
-
-        if (type === 'error') {
-            displayElement.classList.add('bg-red-800'); // Adds red
-        } else if (type === 'success') {
-            displayElement.classList.add('bg-green-800'); // Adds green
-        } else { // info
-            displayElement.classList.add('bg-blue-800'); // Adds blue
-        }
-        console.log("DEBUG: Final classes:", displayElement.classList.value);
-        console.log("DEBUG: Final textContent:", displayElement.textContent);
-
-        if (duration > 0) {
-            console.log(`DEBUG: Setting timeout to hide message in ${duration}ms.`);
-            setTimeout(() => {
-                hideMessage(elementId);
-            }, duration);
-        }
-    } else {
-        console.error(`DEBUG ERROR: Element with ID "${elementId}" not found for showMessage.`);
-    }
-}
-
-function hideMessage(elementId) {
-    const displayElement = document.getElementById(elementId);
-    if (displayElement) {
-        displayElement.classList.add('hidden');
-        displayElement.textContent = ''; 
-    }
 }
 
 async function fetchPlayersFromFirebase() {
@@ -227,12 +189,15 @@ async function handleAddNewPlayer(selectElement) {
 
 // MODIFIED: Function to update the display based on game type selection and player selections
 function updateMatchFormUI() {
-    const selectedGameType = document.querySelector('input[name="gameType"]:checked').value;
-    
+    const checkedGameTypeRadio = document.querySelector('input[name="gameType"]:checked');
+    // Safely get the selected game type. If no radio button is checked (e.g., on initial load),
+    // it will default to '1v1' to ensure a consistent starting state.
+    const selectedGameType = checkedGameTypeRadio ? checkedGameTypeRadio.value : '1v1';
+
     const p1 = player1Input.value;
     const p2 = player2Input.value;
-    const p3 = player3Input.value; 
-    const p4 = player4Input.value; 
+    const p3 = player3Input.value;
+    const p4 = player4Input.value;
     
     if (selectedGameType === '2v2') {
         winnerTeam1RadioDiv.classList.remove('hidden');
@@ -248,7 +213,7 @@ function updateMatchFormUI() {
         if (ballsLeftPlayer1Input) ballsLeftPlayer1Input.parentNode.classList.remove('hidden');
         if (ballsLeftPlayer2Input) ballsLeftPlayer2Input.parentNode.classList.remove('hidden');
 
-    } else { // 1v1
+    } else if (selectedGameType === '1v1' || selectedGameType === '') { // 1v1
         team2PlayersContainer.classList.add('hidden');
         player3Input.value = '';
         player4Input.value = '';
@@ -368,7 +333,6 @@ function formatTime(timestamp) {
     }
 }
 
-
 async function handleAddMatch() {
     console.log("handleAddMatch called!");
     hideMessage('matchErrorMessageDisplay'); // Always hide any previous message at the start
@@ -376,7 +340,7 @@ async function handleAddMatch() {
     // Get game type first, as it dictates other requirements
     const checkedGameTypeRadio = document.querySelector('input[name="gameType"]:checked');
     if (!checkedGameTypeRadio) {
-        showMessage('matchErrorMessageDisplay', 'Please select a game type (1v1 or 2v2).', 'error', 5000);
+        showMessage('matchErrorMessageDisplay', 'Please select a game type (1v1 or 2v2).', 5000);
         console.error("Error: No game type selected.");
         return; // Exit if game type is not selected
     }
@@ -465,7 +429,7 @@ async function handleAddMatch() {
 
         const selectedWinnerRadio = document.querySelector('input[name="winner"]:checked');
         if (!selectedWinnerRadio) {
-            showMessage('matchErrorMessageDisplay', 'Please select a winner for the 1v1 match.', 'error', 5000);
+            showMessage('matchErrorMessageDisplay', 'Please select a winner for the 1v1 match.', 5000);
             return;
         }
 
@@ -492,7 +456,7 @@ async function handleAddMatch() {
 
         const selectedWinnerRadio = document.querySelector('input[name="winner"]:checked');
         if (!selectedWinnerRadio) {
-            showMessage('matchErrorMessageDisplay', 'Please select a winning team for the 2v2 match.', 'error', 5000);
+            showMessage('matchErrorMessageDisplay', 'Please select a winning team for the 2v2 match.', 5000);
             return;
         }
 
@@ -914,7 +878,6 @@ async function fetchAndRenderLatestMatches() {
         showMessage('latestMatchesErrorMessage', `Error loading latest matches: ${error.message}`, 'error');
     }
 }
-
 
 // --- Clear All Data Functions ---
 function initiateClearAllData() {

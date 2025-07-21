@@ -1458,8 +1458,9 @@ video {
 /* Active State for Navigation Link */
 .active-nav-link {
     font-weight: 800; /* Makes it bolder */
-    font-size: 1.5rem;
-    background-color: rgba(26, 207, 252, 0.301); /* A subtle, semi-transparent background */
+    font-size: 1.75rem;
+    background-image: linear-gradient(to right, #6b21a8, #1d4ed8);
+    border: 3px solid #111827;
     color: #ffffff; /* A light green color for contrast */
     pointer-events: none; /* Makes the link unclickable when active */
 }

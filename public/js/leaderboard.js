@@ -529,15 +529,15 @@ async function handleAddMatch() {
             }
 
             const newGames1v1 = newWins1v1 + newLosses1v1;
-            const newWinRate1v1 = calculateWinRate(newWins1v1, newWins1v1 + newLosses1v1);
+            const newWinRate1v1 = calculateWinRate(newWins1v1, newLosses1v1);
 
             const newGames2v2 = newWins2v2 + newLosses2v2;
-            const newWinRate2v2 = calculateWinRate(newWins2v2, newWins2v2 + newLosses2v2);
+            const newWinRate2v2 = calculateWinRate(newWins2v2, newLosses2v2);
 
             const newTotalWins = newWins1v1 + newWins2v2;
             const newTotalLosses = newLosses1v1 + newLosses2v2;
             const newTotalGamesPlayed = newTotalWins + newTotalLosses;
-            const newOverallWinRate = calculateWinRate(newTotalWins, newTotalWins + newTotalLosses);
+            const newOverallWinRate = calculateWinRate(newTotalWins, newTotalLosses);
 
             batch.update(playerRef, {
                 wins1v1: newWins1v1,
@@ -755,70 +755,50 @@ async function fetchAndRenderLatestMatches() {
             return;
         }
 
-        matches.forEach(match => {
+        matches.forEach((match, index) => { // Add 'index' as the second parameter here
             const row = latestMatchesTableBody.insertRow();
-            row.className = 'border-b border-gray-600 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500';
+            
+            // Start with common classes for all rows
+            let rowClasses = 'odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500';
 
+            // Conditionally add the bottom border to all rows EXCEPT the last one
+            if (index < matches.length - 1) {
+                rowClasses += ' border-b-4 border-blue-400';
+            }
+            row.className = rowClasses;
             // Date
             const dateCell = row.insertCell();
-            dateCell.className = 'py-3 px-4 text-left whitespace-nowrap border-r border-gray-500'; // Added border
+            dateCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r-4 border-blue-400'; // Added border
             // Use match.timestamp for full date/time consistency if match.date is just "YYYY-MM-DD"
             dateCell.textContent = formatDate(match.timestamp); 
-
             // Time
             const timeCell = row.insertCell();
-            timeCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r border-gray-500'; // Added border
+            timeCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r-4 border-blue-400'; // Added border
             timeCell.textContent = formatTime(match.timestamp);
-
             // Game Type
             const typeCell = row.insertCell();
-            typeCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r border-gray-500'; // Added border
+            typeCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r-4 border-blue-400'; // Added border
             typeCell.textContent = match.gameType.toUpperCase();
-
             // Winner(s)
             const winnerCell = row.insertCell();
-            winnerCell.className = 'py-3 px-4 text-left whitespace-nowrap text-green-400 border-r border-gray-500'; // Added border
+            winnerCell.className = 'py-3 px-4 text-center whitespace-nowrap text-green-400 border-r-4 border-blue-400'; // Added border
             if (match.gameType === '1v1') {
                 winnerCell.textContent = match.winner;
             } else {
                 winnerCell.textContent = match.winningTeam.join(' & ');
             }
-
-            // Balls Potted (Winner) - Now applies to all game types if values exist
-            const ballsPottedWinnerCell = row.insertCell();
-            ballsPottedWinnerCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r border-gray-500'; 
-            const winnerBallsLeft = parseInt(match.ballsLeftWinner);
-            if (!isNaN(winnerBallsLeft) && winnerBallsLeft !== null) { 
-                ballsPottedWinnerCell.textContent = 7 - winnerBallsLeft;
-            } else {
-                ballsPottedWinnerCell.textContent = 'N/A';
-            }
-
             // Loser(s)
             const loserCell = row.insertCell();
-            loserCell.className = 'py-3 px-4 text-left whitespace-nowrap text-red-400 border-r border-gray-500'; // Added border
+            loserCell.className = 'py-3 px-4 text-center whitespace-nowrap text-red-400 border-r-4 border-blue-400'; // Added border
             if (match.gameType === '1v1') {
                 loserCell.textContent = match.loser;
             } else {
                 loserCell.textContent = match.losingTeam.join(' & ');
             }
-
-            // Balls Potted (Loser) - Now applies to all game types if values exist
-            const ballsPottedLoserCell = row.insertCell();
-            ballsPottedLoserCell.className = 'py-3 px-4 text-center whitespace-nowrap border-r border-gray-500';
-            const loserBallsLeft = parseInt(match.ballsLeftLoser);
-            if (!isNaN(loserBallsLeft) && loserBallsLeft !== null) { 
-                ballsPottedLoserCell.textContent = 7 - loserBallsLeft;
-            } else {
-                ballsPottedLoserCell.textContent = 'N/A';
-            }
-
             // Scratch Win
             const scratchWinCell = row.insertCell();
             scratchWinCell.className = 'py-3 px-4 text-center whitespace-nowrap'; // No border-r for the last column
             scratchWinCell.textContent = match.isScratchWin ? 'Yes' : 'No';
-
-            // Removed: Comments column
         });
 
     } catch (error) {

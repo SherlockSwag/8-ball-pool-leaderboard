@@ -3,261 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player Profile - Pool House</title>
+    <title>Pool House Leaderboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css"> 
 </head>
 <body class="bg-gradient-to-br from-gray-900 to-gray-800 font-inter flex flex-col items-center min-h-screen px-4 text-gray-100">
-    <header class="w-full max-w-5xl bg-gradient-to-r from-blue-700 to-purple-800 shadow-xl py-4 text-white text-center rounded-b-xl mb-8">
-        <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Player Profile</h1>
+    <!-- Main Header - Now a scrolling header -->
+    <!-- Dashboard Menu -->
+    <header class="w-full max-w-5xl bg-gradient-to-r from-blue-700 to-purple-800 shadow-xl py-10 text-white text-center rounded-b-xl mb-8">
+        <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Pool House Leaderboard</h1>
         <nav class="w-full max-w-5xl mx-auto mt-4 px-4">
             <ul class="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
                 <li>
-                    <a href="index.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Leaderboard
-                    </a>
+                    <a href="index.html" class="nav-link active-nav-link">Leaderboard</a>
                 </li>
                 <li>
-                    <a href="playerList.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Player List
-                    </a>
+                    <a href="playerList.html" class="nav-link">Player List</a>
                 </li>
                 <li>
-                    <a href="calculators.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Calculator
-                    </a>
+                    <a href="calculators.html" class="nav-link">Calculator</a>
                 </li>
                 <li>
-                    <a href="allMatches.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Match History
-                    </a>
+                    <a href="allMatches.html" class="nav-link">Match History</a>
                 </li>
                 <li>
-                    <a href="#" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Empty
-                        </a>
+                    <a href="admin.html" class="nav-link">Admin</a>
                 </li>
             </ul>
         </nav>
     </header>
 
-    <main class="w-full max-w-5xl mt-8 mb-8">
-        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full">
+    <!-- Leaderboard Table -->
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-7xl mb-8 mt-2">
+        <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Overall Leaderboard</h2>
+        <div id="leaderboardErrorMessage" class="mt-4 p-3 rounded-lg text-sm hidden bg-red-700 text-white"></div>
+        <table class="min-w-full bg-gray-700 rounded-lg shadow-xl overflow-hidden">
+            <thead>
+                <tr class="bg-gray-600">
+                    <th class="py-3 px-4 text-left text-l font-semibold text-gray-200">Rank</th>
+                    <th class="py-3 px-4 text-left text-l font-semibold text-gray-200">Player</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200">1v1 Games</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200">1v1 Win Rate</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200">2v2 Games</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200">2v2 Win Rate</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200">Overall Win Rate (%)</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200">Streak</th>
+                    <th class="py-3 px-4 text-left text-l font-semibold text-gray-200">Last Played</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardTableBody">
+                <tr>
+                    <td colspan="9" class="py-3 px-4 text-center text-sm text-gray-400">Loading leaderboard...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-            <div id="profileErrorMessage" class="mt-4 p-3 rounded-lg text-sm hidden"></div>
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-7xl mb-8 mt-2">
+        <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Recent Matches</h2>
+        <div id="latestMatchesErrorMessage" class="mt-4 p-3 rounded-lg text-sm hidden bg-red-700 text-white"></div>
+        <table class="min-w-full bg-gray-700 rounded-lg shadow-xl overflow-hidden">
+            <thead>
+                <tr class="bg-gray-600">
+                    <th class="py-3 px-4 text-left text-l font-semibold text-gray-200 border-r border-gray-500">Date</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200 border-r border-gray-500">Time</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200 border-r border-gray-500">Type</th>
+                    <th class="py-3 px-4 text-left text-l font-semibold text-gray-200 border-r border-gray-500">Winner</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200 border-r border-gray-500">Balls Potted (W)</th>
+                    <th class="py-3 px-4 text-left text-l font-semibold text-gray-200 border-r border-gray-500">Loser</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200 border-r border-gray-500">Balls Potted (L)</th>
+                    <th class="py-3 px-4 text-center text-l font-semibold text-gray-200">Scratch Win</th>
+                </tr>
+            </thead>
+            <tbody id="latestMatchesTableBody">
+                <tr>
+                    <td colspan="8" class="py-3 px-4 text-center text-sm text-gray-400">Loading latest matches...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-            <section class="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 pb-8 border-b border-gray-700">
-                <div class="flex-shrink-0">
-                    <div class="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-3xl font-bold text-white mb-4 overflow-hidden shadow-lg">
-                        <img id="playerAvatar" src="https://placehold.co/96x96/4299E1/FFFFFF?text=?" 
-                             alt="Player Avatar" 
-                             class="w-full h-full object-cover">
-                    </div>
-                </div>
-                <div class="flex-grow text-center sm:text-left">
-                    <h1 id="profilePlayerName" class="text-4xl font-bold text-blue-300 mb-2">Loading Player...</h1>
-                    <p id="playerDescription" class="text-gray-300 text-lg italic mt-2">No description available.</p>
-                </div>
-                <div class="flex-shrink-0 sm:self-end mt-4 sm:mt-0">
-                    <button id="editProfileBtn" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors text-base">
-                        Edit Profile
-                    </button>
-                </div>
-                
-            </section>
-            <div id="editProfileModal" class="modal">
-                <div class="modal-content">
-                    <span class="close-button" id="closeEditModalBtn">&times;</span>
-                    <h2 class="modal-title">Edit Player Profile</h2>
-                    <form id="editProfileForm">
-                        <div class="form-group">
-                            <label for="editDisplayName" class="form-label">Display Name:</label>
-                            <input type="text" id="editDisplayName" class="form-input" placeholder="Enter new display name">
-                        </div>
-                        <div class="form-group">
-                            <label for="editDescription" class="form-label">Description:</label>
-                            <textarea id="editDescription" rows="4" class="form-textarea" placeholder="Tell us about yourself..."></textarea>
-                        </div>
+    <!-- Match Tracker Section -->
+        <section class="w-full max-w-4xl bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 mb-8">
+            <h2 class="text-2xl font-semibold text-blue-300 mb-6 text-center border-b border-gray-700 pb-2">Add New Match (Two-Column Dynamic)</h2>
 
-                        <div class="avatar-section">
-                            <label class="avatar-section-title">Player Avatar</label>
-                            
-                            <label class="avatar-preview-label">Current Displayed Avatar:</label>
-                            <img id="currentAvatarPreview" src="" alt="Current Avatar" class="current-avatar-preview">
-                            
-                            <div class="avatar-option-card">
-                                <label class="avatar-option-title">Generate New DiceBear Pixel Art Avatar</label>
-                                <button type="button" id="generateRandomAvatarBtn" class="btn btn-purple">
-                                    Generate Random DiceBear
-                                </button>
-                            </div>
-                        </div>
-                        <div class="avatar-option-card">
-                            <label class="avatar-option-title">Upload Custom Avatar (Image file)</label>
-                            <label for="editAvatarFile" class="form-label">Select File (optional):</label>
-                            <input type="file" id="editAvatarFile" accept="image/*" class="custom-file-input">
-                            <p class="text-xs text-gray-400 mt-2">Uploading a new file will override the DiceBear avatar.</p>
-                        </div>
-                        
-                        <div id="editProfileStatus" class="status-message hidden"></div>
-                        
-                        <div class="flex-end-gap-3">
-                            <button type="button" id="cancelEditBtn" class="btn btn-gray">
-                                Cancel
-                            </button>
-                            <button type="submit" class="btn btn-blue">
-                                Save Changes
-                            </button>
-                        </div>
-                    </form>
+            <div class="mb-6">
+                <label for="matchDateInput" class="block text-gray-300 text-sm font-bold mb-2">Match Date:</label>
+                <input type="date" id="matchDateInput" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-300 text-sm font-bold mb-2">Game Type:</label>
+                <div class="flex items-center space-x-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="gameType" value="1v1" checked class="form-radio text-blue-500">
+                        <span class="ml-2 text-gray-200">1v1</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="gameType" value="2v2" class="form-radio text-blue-500">
+                        <span class="ml-2 text-gray-200">2v2</span>
+                    </label>
                 </div>
             </div>
 
-            <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
-                    <h2 class="text-xl font-semibold text-blue-200 mb-4 border-b border-gray-600 pb-2">Overall Statistics</h2>
-                    <div class="space-y-3 text-base">
-                        <p class="flex items-center"><span class="mr-2 text-blue-400">📊</span> <strong class="font-semibold text-gray-200">Games Played:</strong> <span id="totalGamesPlayed" class="ml-auto text-gray-50">N/A</span></p>
-                        <p class="flex items-center"><span class="mr-2 text-yellow-400">🏆</span> <strong class="font-semibold text-gray-200">Total Wins/Losses:</strong> <span id="overallWinsLosses" class="ml-auto text-gray-50">N/A</span></p>
-                        <p class="flex items-center"><span class="mr-2 text-purple-400">📈</span> <strong class="font-semibold text-gray-200">Overall Win Rate:</strong> <span id="overallWinRate" class="ml-auto text-gray-50">N/A</span></p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-200 mb-3">Team 1</h3>
+                    <label for="player1Input" class="block text-gray-300 text-sm font-bold mb-2">Player 1:</label>
+                    <select id="player1Input" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">-- Select Player 1 --</option>
+                        <option value="ADD_NEW_PLAYER">-- Add New Player --</option>
+                        <option>Alice</option>
+                    </select>
+                    <div class="mt-2">
+                        <label for="ballsLeftPlayer1Input" class="block text-gray-300 text-sm font-bold mb-2">Balls Left (P1):</label>
+                        <input type="number" id="ballsLeftPlayer1Input" placeholder="Balls left for P1" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
                     </div>
-                </div>
 
-                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
-                    <h2 class="text-xl font-semibold text-red-200 mb-4 border-b border-gray-600 pb-2">Streaks</h2>
-                    <div class="space-y-3 text-base">
-                        <p class="flex items-center"><span class="mr-2 text-orange-400">🔥</span> <strong class="font-semibold text-gray-200">Longest Win Streak:</strong> <span id="longestWinStreak" class="ml-auto text-gray-50">N/A</span></p>
-                        <p class="flex items-center"><span class="mr-2 text-blue-400">🥶</span> <strong class="font-semibold text-gray-200">Longest Losing Streak:</strong> <span id="longestLosingStreak" class="ml-auto text-gray-50">N/A</span></p>
-                        <p class="flex items-center"><span class="mr-2 text-purple-400">⚡</span> <strong class="font-semibold text-gray-200">Current Streak:</strong> <span id="currentStreak" class="ml-auto text-gray-50">N/A</span></p>
-                    </div>
-                </div>
-
-                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
-                    <h2 class="text-xl font-semibold text-green-200 mb-4 border-b border-gray-600 pb-2">1v1 Matches</h2>
-                    <div class="space-y-3 text-base">
-                        <p class="flex items-center"><span class="mr-2 text-green-400">⚔️</span> <strong class="font-semibold text-gray-200">Games Played:</strong> <span id="games1v1" class="ml-auto text-gray-50">N/A</span></p>
-                        <p class="flex items-center"><span class="mr-2 text-green-400">✅</span> <strong class="font-semibold text-gray-200">Wins/Losses:</strong> <span id="winsLosses1v1" class="ml-auto text-gray-50">N/A</span></p>
-                        <p class="flex items-center"><span class="mr-2 text-green-400">🎯</span> <strong class="font-semibold text-gray-200">Win Rate:</strong> <span id="winRate1v1" class="ml-auto text-gray-50">N/A</span></p>
-                    </div>
-                </div>
-
-                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
-                    <h2 class="text-xl font-semibold text-yellow-200 mb-4 border-b border-gray-600 pb-2">2v2 Matches</h2>
-                    <div class="space-y-3 text-base">
-                        <p class="flex items-center"><span class="mr-2 text-yellow-400">🤝</span> <strong class="font-semibold text-gray-200">Games Played:</strong> <span id="games2v2" class="ml-auto text-gray-50">N/A</span></p>
-                        <p class="flex items-center"><span class="mr-2 text-yellow-400">🌟</span> <strong class="font-semibold text-gray-200">Wins/Losses:</strong> <span id="winsLosses2v2" class="ml-auto text-gray-50">N/A</span></p>
-                        <p class="flex items-center"><span class="mr-2 text-yellow-400">🏅</span> <strong class="font-semibold text-gray-200">Win Rate:</strong> <span id="winRate2v2" class="ml-auto text-gray-50">N/A</span></p>
-                    </div>
-                </div>
-
-                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
-                    <h2 class="text-xl font-semibold text-blue-300 mb-4 border-b border-gray-600 pb-2">Balls Potted</h2>
-                    <div class="space-y-3 text-base">
-                        <p class="flex items-center"><span class="mr-2 text-blue-400">🎱</span> <strong class="font-semibold text-gray-200">Total Balls Potted:</strong> <span id="totalBallsPotted" class="ml-auto text-gray-50">N/A</span></p>
-                        <p class="flex items-center"><span class="mr-2 text-blue-400">🎯</span> <strong class="font-semibold text-gray-200">Average Balls Potted per Game:</strong> <span id="averageBallsPotted" class="ml-auto text-gray-50">N/A</span></p>
-                    </div>
-                </div>
-
-                <div class="bg-gray-700 p-6 rounded-lg shadow-inner border border-gray-600">
-                    <h2 class="text-xl font-semibold text-red-300 mb-4 border-b border-gray-600 pb-2">8 Ball Scratches</h2>
-                    <div class="space-y-3 text-base">
-                        <p class="flex items-center"><span class="mr-2 text-red-400">🚫</span> <strong class="font-semibold text-gray-200">8 Ball Scratches (By Player):</strong> <span id="player8BallScratches" class="ml-auto text-gray-50">N/A</span></p>
-                        <p class="flex items-center"><span class="mr-2 text-red-400">✅</span> <strong class="font-semibold text-gray-200">Wins by Opponent 8 Ball Scratch:</strong> <span id="winsByOpponent8BallScratch" class="ml-auto text-gray-50">N/A</span></p>
-                    </div>
-                </div>
-            </section>
-
-            <section id="recentMatchesCard" class="bg-gray-800 rounded-lg mb-6 hidden">
-                <h3 class="text-xl text-center font-semibold text-blue-500 mb-4 border-b border-gray-700 pb-2">RECENT MATCHES</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 class="text-lg text-center font-medium text-gray-300 mb-3">1v1 Matches</h4>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full bg-gray-700 rounded-lg overflow-hidden">
-                                <thead>
-                                    <tr class="bg-gray-600 text-gray-300 text-left text-sm">
-                                        <th class="py-2 px-3 font-semibold">Date</th>
-                                        <th class="py-2 px-3 font-semibold">Opponent</th>
-                                        <th class="py-2 px-3 font-semibold text-center">Result</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recent1v1MatchesTableBody">
-                                    <tr><td colspan="4" class="py-3 px-4 text-center text-gray-400">No 1v1 recent matches.</td></tr>
-                                </tbody>
-                            </table>
+                    <div id="player2ForTeam1Container" class="mt-4 hidden bg-gray-700 p-3 rounded-md">
+                        <label for="player2Input" class="block text-gray-300 text-sm font-bold mb-2">Player 2 (Team 1):</label>
+                        <select id="player2Input" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">-- Select Player 2 --</option>
+                            <option value="ADD_NEW_PLAYER">-- Add New Player --</option>
+                            <option>Bob</option>
+                        </select>
+                        <div class="mt-2">
+                            <label for="ballsLeftPlayer2Input" class="block text-gray-300 text-sm font-bold mb-2">Balls Left (P2):</label>
+                            <input type="number" id="ballsLeftPlayer2Input" placeholder="Balls left for P2" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                     </div>
 
-                    <div>
-                        <h4 class="text-lg text-center font-medium text-gray-300 mb-3">2v2 Matches</h4>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full bg-gray-700 rounded-lg overflow-hidden">
-                                <thead>
-                                    <tr class="bg-gray-600 text-gray-300 text-left text-sm">
-                                        <th class="py-2 px-3 font-semibold">Date</th>
-                                        <th class="py-2 px-3 font-semibold">Teammate(s) & Opponent(s)</th>
-                                        <th class="py-2 px-3 font-semibold text-center">Result</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recent2v2MatchesTableBody">
-                                    <tr><td colspan="4" class="py-3 px-4 text-center text-gray-400">No 2v2 recent matches.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div id="player1WinnerRadioDiv" class="mt-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="winner" value="player1" class="form-radio text-green-500">
+                            <span id="player1WinnerLabel" class="ml-2 text-green-300">Player 1 (or Team 1)</span>
+                        </label>
                     </div>
                 </div>
-                
-                <div class="text-center mt-6">
-                    <button id="viewAllMatchHistoryBtn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-lg">
-                        View All Match History
-                    </button>
-                </div>
-            </section>
 
-            <section id="rivalriesCard" class="mb-8"> 
-                <h2 class="text-xl text-center font-semibold text-orange-400 mb-4 border-b border-gray-700 pb-2">RIVALRIES</h2>
-                <div class="overflow-x-auto rounded-lg border border-gray-700">
-                    <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden">
-                        <thead class="bg-gray-600">
-                            <tr>
-                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Opponent</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Win/Loss Bar</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Wins</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Losses</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Win Rate %</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Current Streak</th> </tr>
-                        </thead>
-                        <tbody id="rivalriesTableBody" class="text-gray-100">
-                            </tbody>
-                    </table>
-                </div>
-                <p id="noRivalriesMessage" class="py-3 px-4 text-center text-sm text-gray-400 hidden">No rivalries to display yet.</p>
-            </section>
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-200 mb-3" id="team2Header">Team 2</h3>
+                    <label for="player2Or3Input" class="block text-gray-300 text-sm font-bold mb-2"><span id="player2or3Label">Player 2:</span></label>
+                    <select id="player2Or3Input" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">-- Select Player --</option>
+                        <option value="ADD_NEW_PLAYER">-- Add New Player --</option>
+                        <option>Charlie</option>
+                    </select>
+                    <div class="mt-2">
+                        <label for="ballsLeftPlayer2Or3Input" class="block text-gray-300 text-sm font-bold mb-2"><span id="ballsLeftPlayer2or3Label">Balls Left (P2):</span></label>
+                        <input type="number" id="ballsLeftPlayer2Or3Input" placeholder="Balls left for P2" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
 
-            <section id="partnershipsCard" class="mb-8">
-                <h2 class="text-xl text-center font-semibold text-purple-500 mb-4 border-b border-gray-700 pb-2">PARTNERSHIPS</h2>
-                <div class="overflow-x-auto rounded-lg border border-gray-700">
-                    <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden">
-                        <thead class="bg-gray-600">
-                            <tr>
-                                <th class="py-2 px-4 text-left text-sm font-semibold text-gray-200">Teammate</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Wins/Losses</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Wins</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Losses</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Win Rate %</th>
-                                <th class="py-2 px-4 text-center text-sm font-semibold text-gray-200">Current Streak</th>
-                            </tr>
-                        </thead>
-                        <tbody id="partnershipsTableBody" class="text-gray-100">
-                            </tbody>
-                    </table>
-                </div>
-                <p id="noPartnershipsMessage" class="py-3 px-4 text-center text-sm text-gray-400 hidden">No partnerships found yet.</p>
-            </section>
-        </div>
-    </main>
+                    <div id="player4ForTeam2Container" class="mt-4 hidden bg-gray-700 p-3 rounded-md">
+                        <label for="player4Input" class="block text-gray-300 text-sm font-bold mb-2">Player 4 (Team 2):</label>
+                        <select id="player4Input" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">-- Select Player 4 --</option>
+                            <option value="ADD_NEW_PLAYER">-- Add New Player --</option>
+                            <option>David</option>
+                        </select>
+                        <div class="mt-2">
+                            <label for="ballsLeftPlayer4Input" class="block text-gray-300 text-sm font-bold mb-2">Balls Left (P4):</label>
+                            <input type="number" id="ballsLeftPlayer4Input" placeholder="Balls left for P4" class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                    </div>
 
-    <script type="module" src="js/playerProfile.js"></script>
+                    <div id="player2WinnerRadioDiv" class="mt-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="winner" value="player2" class="form-radio text-green-500">
+                            <span id="player2WinnerLabel" class="ml-2 text-green-300">Player 2 (or Team 2)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="isScratchWinCheckbox" class="form-checkbox text-blue-500">
+                    <span class="ml-2 text-gray-200">Scratch Win?</span>
+                </label>
+            </div>
+
+            <div class="mb-6">
+                <label for="remarksInput" class="block text-gray-300 text-sm font-bold mb-2">Remarks (Optional):</label>
+                <textarea id="remarksInput" rows="3" placeholder="Any additional comments about the match..." class="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-900 text-gray-100 border-gray-600 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+
+            <div id="matchErrorMessageDisplay" class="p-3 bg-red-800 text-white rounded-lg hidden text-sm mb-4"></div>
+
+            <button id="addMatchButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full transition duration-150 ease-in-out transform hover:scale-105 shadow-md">
+                Add Match
+            </button>
+        </section>
+
+    <script type="module" src="js/leaderboard.js"></script>
 </body>
 </html>

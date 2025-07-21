@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        matchesToRender.forEach(match => {
+        matchesToRender.forEach((match, index) => {
             // Determine the display date from match.date string
             let displayDate = 'N/A';
             if (match.date && typeof match.date === 'string') {
@@ -153,22 +153,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else if (typeof match.isScratchWin === 'number') {
                 displayScratchWin = (match.isScratchWin === 1) ? 'Yes' : 'No';
             }
-            // END OF MODIFICATION
 
-            // Determine Comments display
-            const displayComments = match.comments && match.comments.trim().length > 0 ? match.comments : 'N/A';
-
+            // --- MODIFICATION STARTS HERE ---
+            // Determine the border class for the current row
+            let rowBorderClass = '';
+            if (index < matchesToRender.length - 1) { // Apply border to all but the last row
+                rowBorderClass = 'border-b-2 border-blue-400';
+            }
+            // --- MODIFICATION ENDS HERE ---
+            
             const row = `
-                <tr class="border-b border-gray-200 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500">
-                    <td class="py-2 px-4 text-sm text-gray-200 text-center">${displayDate}</td>
-                    <td class="py-2 px-4 text-sm text-gray-200 text-center">${displayTime}</td>
-                    <td class="py-2 px-4 text-sm text-gray-200 text-center">${gameType}</td>
-                    <td class="py-2 px-4 text-sm text-green-300 font-semibold text-center">${winners}</td>
-                    <td class="py-2 px-4 text-sm text-green-300 text-center">${ballsPottedWinner}</td>
-                    <td class="py-2 px-4 text-sm text-red-300 font-semibold text-center">${losers}</td>
-                    <td class="py-2 px-4 text-sm text-red-300 text-center">${ballsPottedLoser}</td>
+                <tr class="${rowBorderClass} odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500">
+                    <td class="py-2 px-4 text-sm text-gray-200 text-center border-r-2 border-blue-400">${displayDate}</td>
+                    <td class="py-2 px-4 text-sm text-gray-200 text-center border-r-2 border-blue-400">${displayTime}</td>
+                    <td class="py-2 px-4 text-sm text-gray-200 text-center border-r-2 border-blue-400">${gameType}</td>
+                    <td class="py-2 px-4 text-sm text-green-300 font-semibold text-center border-r-2 border-blue-400">${winners}</td>
+                    <td class="py-2 px-4 text-sm text-gray-300 text-center border-r-2 border-blue-400">${ballsPottedWinner}</td>
+                    <td class="py-2 px-4 text-sm text-red-300 font-semibold text-center border-r-2 border-blue-400">${losers}</td>
+                    <td class="py-2 px-4 text-sm text-gray-300 text-center border-r-2 border-blue-400">${ballsPottedLoser}</td>
                     <td class="py-2 px-4 text-sm text-gray-200 text-center">${displayScratchWin}</td>
-                    <td class="py-2 px-4 text-sm text-gray-200 text-center">${displayComments}</td>
                 </tr>
             `;
             tableBody.innerHTML += row;

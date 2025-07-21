@@ -70,9 +70,10 @@ export function formatDate(dateInput) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
     const day = String(date.getDate()).padStart(2, '0');
-    return `${day}-${month}-${year}`;
-}
 
+    return `${day}/${month}/${year}`;
+    
+}
 /**
  * Formats a given date/time input into a readable 'HH:MM AM/PM' format.
  * Handles Date objects, time strings, and Firebase Timestamps.

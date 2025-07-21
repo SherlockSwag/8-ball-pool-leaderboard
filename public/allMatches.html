@@ -10,34 +10,24 @@
 </head>
 <body class="bg-gradient-to-br from-gray-900 to-gray-800 font-inter flex flex-col items-center min-h-screen px-4 text-gray-100">    <!-- Main Header - Now a scrolling header -->
     <!-- Dashboard Menu -->
-    <header class="w-full max-w-5xl bg-gradient-to-r from-blue-700 to-purple-800 shadow-xl py-4 text-white text-center rounded-b-xl mb-8">
-        <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Pool House Match History</h1>
+    <header class="w-full max-w-5xl bg-gradient-to-r from-blue-700 to-purple-800 shadow-xl py-10 text-white text-center rounded-b-xl mb-8">
+        <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Pool House</h1>
         <nav class="w-full max-w-5xl mx-auto mt-4 px-4">
             <ul class="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
                 <li>
-                    <a href="index.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Leaderboard
-                    </a>
+                    <a href="index.html" class="nav-link">Leaderboard</a>
                 </li>
                 <li>
-                    <a href="playerList.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Player List
-                    </a>
+                    <a href="playerList.html" class="nav-link">Player List</a>
                 </li>
                 <li>
-                    <a href="calculators.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Calculator
-                    </a>
+                    <a href="calculators.html" class="nav-link">Calculator</a>
                 </li>
                 <li>
-                    <a href="allMatches.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Match History
-                    </a>
+                    <a href="allMatches.html" class="nav-link active-nav-link">Match History</a>
                 </li>
                 <li>
-                    <a href="admin.html" class="text-white hover:text-blue-200 font-medium transition duration-150 ease-in-out text-base sm:text-lg px-3 py-1 rounded-md bg-transparent hover:bg-white hover:bg-opacity-10">
-                        Admin
-                    </a>
+                    <a href="admin.html" class="nav-link">Admin</a>
                 </li>
             </ul>
         </nav>
@@ -96,18 +86,18 @@
                     </button>
                 </div>
 
-                <div class="overflow-x-auto mx-auto"> <table class="min-w-full leading-normal table-auto">
+                <div class="overflow-x-auto mx-auto border-2 border-blue-400 rounded-lg shadow-xl">
+                    <table class="min-w-full leading-normal table-auto">
                         <thead>
                             <tr>
-                                <th class="py-3 px-4 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">Date</th>
-                                <th class="py-3 px-4 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">Time</th>
-                                <th class="py-3 px-4 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">Game Type</th>
-                                <th class="py-3 px-4 text-center text-sm font-semibold text-green-300 uppercase tracking-wider">Winner(s)</th>
-                                <th class="py-3 px-4 text-center text-sm font-semibold text-green-300 uppercase tracking-wider">Balls Potted (W)</th>
-                                <th class="py-3 px-4 text-center text-sm font-semibold text-red-300 uppercase tracking-wider">Loser(s)</th>
-                                <th class="py-3 px-4 text-center text-sm font-semibold text-red-300 uppercase tracking-wider">Balls Potted (L)</th>
-                                <th class="py-3 px-4 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">Scratch Win</th>
-                                <th class="py-3 px-4 text-center text-sm font-semibold text-gray-300 uppercase tracking-wider">Comments</th>
+                                <th class="full-history-styles">Date</th>
+                                <th class="full-history-styles">Time</th>
+                                <th class="full-history-styles">Game Type</th>
+                                <th class="full-winner-styles">Winner(s)</th>
+                                <th class="full-history-styles">Balls Potted (W)</th>
+                                <th class="full-loser-styles">Loser(s)</th>
+                                <th class="full-history-styles">Balls Potted (L)</th>
+                                <th class="full-history-styles">Scratch Win</th>
                             </tr>
                         </thead>
                         <tbody id="matchHistoryTableBody" class="text-gray-100">
@@ -121,7 +111,11 @@
             </div>
         </section>
     </div>
+    
+    <footer>
+        Bottom of page
+    </footer>
 
-        <script type="module" src="js/allMatches.js"></script> 
+    <script type="module" src="js/allMatches.js"></script> 
     </body>
 </html>

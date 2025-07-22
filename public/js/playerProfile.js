@@ -501,6 +501,8 @@ async function fetchAndRenderPlayerProfile() {
                 playerDescriptionElement.textContent = playerData.description || 'No description available.';
                 console.log(`playerProfile.js: Player description updated to: ${playerDescriptionElement.textContent}`);
             }
+            
+            document.getElementById('ballsPotted').textContent = playerData.ballsPotted || 0;
 
             document.getElementById('totalGamesPlayed').textContent = playerData.totalGamesPlayed || 0;
             const totalWins = playerData.totalWins || 0;

@@ -500,6 +500,34 @@ async function handleAddMatch() {
             let newLongestWinStreak = currentData.longestWinStreak || 0;
             let newLongestLosingStreak = currentData.longestLosingStreak || 0;
 
+            // --- NEW: Calculate ballsPotted for this specific player in this match ---
+            let ballsPottedForThisPlayerInThisMatch = 0;
+            // Assuming 7 is the total number of balls to pot in a game. Adjust if different.
+            const TOTAL_BALLS_IN_GAME = 7;
+
+            if (gameType === '1v1') {
+                if (playerName === winnerName) {
+                    if (ballsLeftWinner !== null) { // Check if ballsLeftWinner was provided
+                        ballsPottedForThisPlayerInThisMatch = TOTAL_BALLS_IN_GAME - ballsLeftWinner;
+                    }
+                } else { // playerName === loserName
+                    if (ballsLeftLoser !== null) { // Check if ballsLeftLoser was provided
+                        ballsPottedForThisPlayerInThisMatch = TOTAL_BALLS_IN_GAME - ballsLeftLoser;
+                    }
+                }
+            } else { // gameType === '2v2'
+                if (winningTeam.includes(playerName)) {
+                    if (ballsLeftWinner !== null) { // Check if ballsLeftWinner was provided
+                        ballsPottedForThisPlayerInThisMatch = TOTAL_BALLS_IN_GAME - ballsLeftWinner;
+                    }
+                } else { // losingTeam.includes(playerName)
+                    if (ballsLeftLoser !== null) { // Check if ballsLeftLoser was provided
+                        ballsPottedForThisPlayerInThisMatch = TOTAL_BALLS_IN_GAME - ballsLeftLoser;
+                    }
+                }
+            }
+            // --- END NEW CALCULATION ---
+
             if (gameType === '1v1') {
                 if (playerName === winnerName) {
                     newWins1v1++;
@@ -555,7 +583,8 @@ async function handleAddMatch() {
                 currentStreak: newCurrentStreak,
                 longestWinStreak: newLongestWinStreak,
                 longestLosingStreak: newLongestLosingStreak,
-                lastPlayed: matchData.date
+                lastPlayed: matchData.date,
+                ballsPotted: increment(ballsPottedForThisPlayerInThisMatch)
             });
 
             if (gameType === '1v1') {
@@ -668,41 +697,41 @@ async function fetchAndRenderLeaderboard() {
             row.className = 'border-b border-gray-600 odd:bg-gray-700 even:bg-gray-600 hover:bg-gray-500';
 
             const rankCell = row.insertCell();
-            rankCell.className = 'py-3 px-4 text-left whitespace-nowrap';
+            rankCell.className = 'py-5 px-6 text-center whitespace-nowrap text-xl';
             rankCell.textContent = index + 1;
 
             const playerCell = row.insertCell();
-            playerCell.className = 'py-3 px-4 text-left whitespace-nowrap';
+            playerCell.className = 'py-5 px-6 text-left whitespace-nowrap text-2xl';
             const encodedPlayerName = encodeURIComponent(player.name);
             playerCell.innerHTML = `
                 <a href="playerProfile.html?playerName=${encodedPlayerName}" class="flex items-center text-blue-300 hover:text-blue-200 font-medium transition duration-150 ease-in-out">
-                    <img src="${player.avatarUrl}" alt="${player.name}" class="w-8 h-8 rounded-full mr-3 border-2 border-purple-500">
+                    <img src="${player.avatarUrl}" alt="${player.name}" class="w-10 h-10 rounded-full mr-3 border-2 border-purple-500">
                     <span>${player.name}</span>
                 </a>
             `;
 
             const games1v1Cell = row.insertCell();
-            games1v1Cell.className = 'py-3 px-4 text-center whitespace-nowrap';
+            games1v1Cell.className = 'py-3 px-4 text-center whitespace-nowrap text-xl';
             games1v1Cell.textContent = player.games1v1;
 
             const winRate1v1Cell = row.insertCell();
-            winRate1v1Cell.className = 'py-3 px-4 text-center whitespace-nowrap';
+            winRate1v1Cell.className = 'py-3 px-4 text-center whitespace-nowrap text-xl';
             winRate1v1Cell.textContent = `${player.wins1v1}W - ${player.losses1v1}L`;
 
             const games2v2Cell = row.insertCell();
-            games2v2Cell.className = 'py-3 px-4 text-center whitespace-nowrap';
+            games2v2Cell.className = 'py-3 px-4 text-center whitespace-nowrap text-xl';
             games2v2Cell.textContent = player.games2v2;
 
             const winRate2v2Cell = row.insertCell();
-            winRate2v2Cell.className = 'py-3 px-4 text-center whitespace-nowrap';
+            winRate2v2Cell.className = 'py-3 px-4 text-center whitespace-nowrap text-xl';
             winRate2v2Cell.textContent = `${player.wins2v2}W - ${player.losses2v2}L`;
 
             const overallWinRateCell = row.insertCell();
-            overallWinRateCell.className = 'py-3 px-4 text-center whitespace-nowrap';
+            overallWinRateCell.className = 'py-3 px-4 text-center whitespace-nowrap text-xl';
             overallWinRateCell.textContent = `${player.overallWinRate.toFixed(2)}%`;
 
             const streakCell = row.insertCell();
-            streakCell.className = 'py-3 px-4 text-center whitespace-nowrap';
+            streakCell.className = 'py-3 px-4 text-center whitespace-nowrap text-xl';
 
             let streakText;
             if (player.currentStreak > 0) {
@@ -717,7 +746,7 @@ async function fetchAndRenderLeaderboard() {
             streakCell.classList.add(player.currentStreak > 0 ? 'text-green-400' : (player.currentStreak < 0 ? 'text-red-400' : 'text-gray-400'));
 
             const lastPlayedCell = row.insertCell();
-            lastPlayedCell.className = 'py-3 px-4 text-left whitespace-nowrap';
+            lastPlayedCell.className = 'py-3 px-4 text-left whitespace-nowrap text-xl';
             lastPlayedCell.textContent = formatDate(player.lastPlayed);
         });
 
